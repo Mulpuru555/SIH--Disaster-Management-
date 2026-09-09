@@ -1,0 +1,31 @@
+﻿# Dependencies
+node_modules/
+*/node_modules/
+
+# Python
+__pycache__/
+*/__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+
+# Build outputs
+dist/
+*/dist/
+build/
+
+# Logs
+*.log
+logs/
+
+# System & IDE
+.env
+.env.local
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
