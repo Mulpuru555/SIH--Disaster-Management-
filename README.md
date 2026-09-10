@@ -34,22 +34,6 @@
 
 ---
 
-## 🚀 Instant Cloud Deployment Guide (Zero Localhost)
-
-### 1. Deploy Frontend to Vercel (1-Click, Free)
-1. Push this repository to GitHub.
-2. Go to [vercel.com](https://vercel.com) and click **"Add New Project"**.
-3. Import your repository and select the **`frontend`** directory as root.
-4. Framework Preset: **Vite** &bull; Build Command: `npm run build` &bull; Output Directory: `dist`.
-5. Click **Deploy**. Your frontend is immediately live on a global HTTPS URL (e.g., `https://resqgrid-bharatbytes.vercel.app`)!
-
-### 2. Deploy Backend to Render (1-Click, Free)
-1. Go to [render.com](https://render.com) and click **"New Web Service"**.
-2. Connect your GitHub repository and set Root Directory to **`backend`**.
-3. Environment: **Python** &bull; Build Command: `pip install -r requirements.txt` &bull; Start Command: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`.
-4. Click **Create Web Service**. Your API is live with interactive docs at `https://your-api.onrender.com/docs`.
-
----
 
 ## 💻 Local Quickstart (For Development)
 
@@ -71,12 +55,5 @@ npm run dev
 
 ---
 
-## 🎯 Verification & Judging Highlights
-* **Zero Shelter Overflow:** Mathematically proven via Google OR-Tools CBC/SCIP solver.
-* **Sub-10ms Solver Runtime:** Solves multi-habitation convoy allocations in $<6\text{ms}$.
-* **Interactive What-If Slider:** Move rainfall slider from 40mm to 160mm to watch new Red Zones form and routes recalculate live.
-* **Dual Carrying Capacity:** True bottleneck tracking of water, food, beds, and toilets.
-* **Official Field Manifest:** Ready-to-print NDRF convoy sheets with 160-char SMS broadcast.
 
----
 **Team BharatBytes &bull; Vignan's Foundation for Science, Technology & Research &bull; SIH 2026**
