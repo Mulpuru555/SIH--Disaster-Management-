@@ -286,8 +286,11 @@ export default function TacticalMap({
     }
 
     // 2. Active Cyclone "Arnab" / Bay of Bengal Deep Depression System
+    // Automatically renders whenever live sensors report cyclonic conditions (pressure < 1002 hPa, gale gusts >= 45 km/h)
+    // or when the user specifically selects the coastal storm testbed sector.
+    const isStormActive = liveWeather ? Boolean(liveWeather.is_cyclone_alert) : true;
     const isCycloneRelevant = ['cyclone_arnab', 'andhra_pradesh', 'odisha', 'all_india', 'west_bengal'].includes(currentSector);
-    if (isCycloneRelevant) {
+    if (isCycloneRelevant && (isStormActive || currentSector === 'cyclone_arnab')) {
       const stormLat = 18.330;
       const stormLng = 84.120;
 

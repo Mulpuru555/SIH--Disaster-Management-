@@ -372,6 +372,7 @@ export default function App() {
         isRadarActive={isRadarActive}
         onDetectLocation={handleDetectLocation}
         currentSector={currentSector}
+        liveWeather={liveWeather}
       />
 
       {/* Metrics Overview Bar */}

@@ -6,10 +6,19 @@ export default function ActiveStormBanner({
   onToggleRadar,
   isRadarActive,
   onDetectLocation,
-  currentSector
+  currentSector,
+  liveWeather
 }) {
   const [isDismissed, setIsDismissed] = useState(false);
   const [isExpanded, setIsExpanded] = useState(true);
+
+  // Auto-deactivation logic:
+  // If the storm has passed (pressure >= 1002 hPa, gusts < 45 km/h) and user is not explicitly inspecting the storm sector,
+  // the emergency banner automatically hides itself so the platform remains clean during normal weather!
+  const isStormActive = liveWeather ? Boolean(liveWeather.is_cyclone_alert) : true;
+  if (!isStormActive && currentSector !== 'cyclone_arnab') {
+    return null;
+  }
 
   if (isDismissed) {
     return (
@@ -35,13 +44,16 @@ export default function ActiveStormBanner({
           }}
         >
           <span className="spin-animate">🌀</span>
-          <span>Show Active Storm Arnab Alert (991 hPa / 76 km/h)</span>
+          <span>Show Storm Alert ({liveWeather?.pressure_hpa ?? 991.2} hPa &bull; {liveWeather?.wind_gusts_kmh ?? 55} km/h)</span>
         </button>
       </div>
     );
   }
 
   const isFocusingStorm = currentSector === 'cyclone_arnab';
+  const stormName = liveWeather?.storm_name || 'Deep Depression "Arnab"';
+  const pressureVal = liveWeather?.pressure_hpa ?? 991.2;
+  const gustsVal = liveWeather?.wind_gusts_kmh ?? 55.4;
 
   return (
     <div style={{
@@ -95,7 +107,7 @@ export default function ActiveStormBanner({
                 🚨 DEOC CYCLONE ALERT
               </span>
               <strong style={{ fontSize: '13px', color: '#ffffff', letterSpacing: '0.3px' }}>
-                Deep Depression &quot;Arnab&quot; Weather System (Bay of Bengal)
+                {stormName} &bull; Active Weather System (Bay of Bengal)
               </strong>
               <span style={{ fontSize: '11px', color: '#fca5a5', fontWeight: '600' }}>
                 &bull; Landfall Sector: Kalingapatnam (North Andhra &amp; South Odisha Coast)
@@ -103,7 +115,7 @@ export default function ActiveStormBanner({
             </div>
 
             <div style={{ fontSize: '11px', color: '#cbd5e1', marginTop: '3px' }}>
-              Deep depression active over Bay of Bengal with sub-1000 hPa central pressure and gale force gusts along the AP-Odisha coast. High swell warning active.
+              Active cyclonic system over Bay of Bengal with central pressure {pressureVal} hPa and gale force gusts along the coast. Auto-deactivates when storm dissipates.
             </div>
           </div>
         </div>
@@ -129,7 +141,7 @@ export default function ActiveStormBanner({
             }}
           >
             <Crosshair size={14} />
-            <span>{isFocusingStorm ? '✓ Tracking Cyclone Arnab' : '🎯 Track Cyclone Arnab Live on Map'}</span>
+            <span>{isFocusingStorm ? '✓ Tracking Active Landfall' : '🎯 Track Active Storm on Map'}</span>
           </button>
 
           <button
@@ -235,7 +247,7 @@ export default function ActiveStormBanner({
                 Live Gale Gusts (AWS)
               </div>
               <div style={{ fontSize: '13px', fontWeight: '800', color: '#ffffff' }}>
-                55 &ndash; 76 km/h
+                {gustsVal} km/h
               </div>
             </div>
           </div>
@@ -255,7 +267,7 @@ export default function ActiveStormBanner({
                 Central Barometric Pressure
               </div>
               <div style={{ fontSize: '13px', fontWeight: '800', color: '#38bdf8' }}>
-                991.2 hPa <span style={{ fontSize: '10px', fontWeight: 'normal', color: '#93c5fd' }}>(Deep Depression)</span>
+                {pressureVal} hPa <span style={{ fontSize: '10px', fontWeight: 'normal', color: '#93c5fd' }}>({pressureVal < 995 ? 'Deep Depression Eye' : 'Low Pressure System'})</span>
               </div>
             </div>
           </div>
@@ -275,7 +287,7 @@ export default function ActiveStormBanner({
                 Coastal Sea Swell
               </div>
               <div style={{ fontSize: '13px', fontWeight: '800', color: '#fdba74' }}>
-                3.5 &ndash; 4.5m <span style={{ fontSize: '10px', fontWeight: 'normal' }}>(Rough Sea)</span>
+                {liveWeather?.sea_condition || '3.5 – 4.5m Rough'}
               </div>
             </div>
           </div>
