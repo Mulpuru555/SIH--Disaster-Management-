@@ -285,17 +285,29 @@ export default function TacticalMap({
       });
     }
 
-    // 2. Active Cyclone "Arnab" / Bay of Bengal Deep Depression System
-    // Automatically renders whenever live sensors report cyclonic conditions (pressure < 1002 hPa, gale gusts >= 45 km/h)
-    // or when the user specifically selects the coastal storm testbed sector.
-    const isStormActive = liveWeather ? Boolean(liveWeather.is_cyclone_alert) : true;
-    const isCycloneRelevant = ['cyclone_arnab', 'andhra_pradesh', 'odisha', 'all_india', 'west_bengal'].includes(currentSector);
-    if (isCycloneRelevant && (isStormActive || currentSector === 'cyclone_arnab')) {
-      const stormLat = 18.330;
-      const stormLng = 84.120;
+    // 2. Active Cyclone & Depressions Tracker (Pan-India & Multi-Basin)
+    // Automatically renders whenever live sensors report cyclonic conditions (pressure < 1002 hPa, gale gusts >= 48 km/h)
+    // or when the user specifically selects the coastal storm testbed sector ('cyclone_arnab') or views all_india.
+    const isStormActive = liveWeather ? Boolean(liveWeather.is_cyclone_alert) : false;
+    const isStormSector = currentSector === 'cyclone_arnab';
+    const isAllIndia = currentSector === 'all_india';
+
+    // Condition to render cyclone layer:
+    // 1) User is in 'cyclone_arnab' sector
+    // 2) Live weather in CURRENT sector (any of the 36 states or GPS) triggers a cyclone alert
+    // 3) On All-India overview when a storm is active
+    if (isStormSector || isStormActive || isAllIndia) {
+      const stormLat = isStormSector ? 18.330 : (isStormActive && liveWeather?.lat ? liveWeather.lat : 18.330);
+      const stormLng = isStormSector ? 84.120 : (isStormActive && liveWeather?.lng ? liveWeather.lng : 84.120);
+      const currentPressure = Number(liveWeather?.pressure_hpa ?? 991.7);
+      const currentGusts = Number(liveWeather?.wind_gusts_kmh ?? 58.3);
+      const currentWind = Number(liveWeather?.wind_speed_kmh ?? 34.6);
+      const stormName = liveWeather?.storm_name || (isStormSector ? 'Deep Depression "Arnab"' : 'Active Coastal Depression');
+      const stormCat = liveWeather?.storm_category || 'Deep Depression';
+      const stationName = liveWeather?.station_name || 'Kalingapatnam / Srikakulam Coast, AP';
 
       // Concentric Barometric Isobar Rings (Pressure gradient)
-      // 1. Central Low Eye Ring (991.2 hPa)
+      // 1. Central Low Eye Ring
       layers.cyclone.addLayer(L.circle([stormLat, stormLng], {
         radius: 26000,
         color: '#dc2626',
@@ -305,7 +317,7 @@ export default function TacticalMap({
         dashArray: '6, 6'
       }));
 
-      // 2. Gale Wind Inundation Buffer (996 hPa, 55-76 km/h gusts)
+      // 2. Gale Wind Inundation Buffer
       layers.cyclone.addLayer(L.circle([stormLat, stormLng], {
         radius: 65000,
         color: '#ea580c',
@@ -315,7 +327,7 @@ export default function TacticalMap({
         dashArray: '5, 5'
       }));
 
-      // 3. Outer Marine Depression Circulation (1002 hPa)
+      // 3. Outer Marine Depression Circulation
       layers.cyclone.addLayer(L.circle([stormLat, stormLng], {
         radius: 125000,
         color: '#eab308',
@@ -337,7 +349,7 @@ export default function TacticalMap({
               </div>
             </div>
             <div style="background: rgba(15, 23, 42, 0.95); color: #fca5a5; border: 1px solid #ef4444; border-radius: 4px; padding: 2px 7px; font-size: 9.5px; font-weight: 800; white-space: nowrap; margin-top: 3px; box-shadow: 0 4px 10px rgba(0,0,0,0.6);">
-              STORM ARNAB &bull; 991 hPa
+              ${stormName.toUpperCase().slice(0, 24)} &bull; ${currentPressure} hPa
             </div>
           </div>
         `,
@@ -350,19 +362,19 @@ export default function TacticalMap({
         <div style="font-size: 12px; min-width: 275px; line-height: 1.45; font-family: sans-serif;">
           <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #ef4444; padding-bottom: 6px; margin-bottom: 8px;">
             <div>
-              <strong style="color: #ffffff; font-size: 13.5px;">Deep Depression &quot;Arnab&quot;</strong>
-              <div style="font-size: 10.5px; color: #fca5a5;">Bay of Bengal / Kalingapatnam Landfall</div>
+              <strong style="color: #ffffff; font-size: 13.5px;">${stormName}</strong>
+              <div style="font-size: 10.5px; color: #fca5a5;">${stationName}</div>
             </div>
-            <span style="background: #dc2626; color: white; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 10px;">RED ALERT</span>
+            <span style="background: #dc2626; color: white; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 10px;">${currentPressure < 995 ? 'RED ALERT' : 'ORANGE ALERT'}</span>
           </div>
           <div style="color: #cbd5e1; display: flex; flex-direction: column; gap: 4px;">
-            <div>&bull; <b>Landfall Epicenter:</b> Kalingapatnam (Srikakulam Coast, AP)</div>
-            <div>&bull; <b>Central Pressure:</b> <strong style="color: #38bdf8;">991.2 hPa</strong> (Deep Depression Eye)</div>
-            <div>&bull; <b>Sustained Wind:</b> 33 km/h | <b>Peak Gale Gusts:</b> <strong style="color: #f87171;">55 - 76 km/h</strong></div>
+            <div>&bull; <b>Meteorological Category:</b> <strong style="color: #f87171;">${stormCat}</strong></div>
+            <div>&bull; <b>Epicenter / Station:</b> ${stationName}</div>
+            <div>&bull; <b>Central MSLP:</b> <strong style="color: #38bdf8;">${currentPressure} hPa</strong></div>
+            <div>&bull; <b>Sustained Wind:</b> ${currentWind} km/h | <b>Peak Gale Gusts:</b> <strong style="color: #f87171;">${currentGusts} km/h</strong></div>
             <div>&bull; <b>Marine Wave Swell:</b> 3.5m - 4.5m (Rough to Very Rough)</div>
-            <div>&bull; <b>At-Risk Population:</b> 8,600 citizens (12 coastal hamlets)</div>
             <div style="margin-top: 5px; padding: 5px 8px; background: rgba(220, 38, 38, 0.2); border-left: 3px solid #ef4444; border-radius: 3px; font-size: 10.5px; color: #fecaca;">
-              <b>Precautionary Action:</b> Preemptive evacuation into reinforced cyclone shelters ordered under Section 34. Total suspension of sea fishing.
+              <b>Precautionary Action:</b> IMD coastal warning active. Preemptive evacuation into reinforced cyclone shelters ordered under Section 34. Total suspension of sea fishing.
             </div>
           </div>
           ${currentSector !== 'cyclone_arnab' ? `

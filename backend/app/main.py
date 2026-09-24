@@ -580,7 +580,7 @@ def get_live_weather(
     import json
     from datetime import datetime
 
-    url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lng}&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,rain,weather_code,wind_speed_10m,wind_gusts_10m,surface_pressure&hourly=precipitation,temperature_2m,wind_gusts_10m&forecast_days=1&timezone=Asia%2FKolkata"
+    url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lng}&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,rain,weather_code,wind_speed_10m,wind_gusts_10m,pressure_msl,surface_pressure&hourly=precipitation,temperature_2m,wind_gusts_10m&forecast_days=1&timezone=Asia%2FKolkata"
     
     try:
         req = urllib.request.Request(url, headers={"User-Agent": "ResQGrid-NDRF-AWS-Client/2.0"})
@@ -589,7 +589,7 @@ def get_live_weather(
             curr = data.get("current", {})
             wind_speed = float(curr.get("wind_speed_10m", 15.0))
             wind_gusts = float(curr.get("wind_gusts_10m", wind_speed * 1.5))
-            pressure = float(curr.get("surface_pressure", 1008.0))
+            pressure = float(curr.get("pressure_msl") or curr.get("surface_pressure", 1008.0))
             rain = float(curr.get("precipitation", 0.0))
             wmo_code = int(curr.get("weather_code", 0))
 

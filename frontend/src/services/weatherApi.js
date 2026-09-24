@@ -99,7 +99,7 @@ export async function fetchLiveSectorWeather(sectorKey = 'all_india', customCoor
   const timeoutId = setTimeout(() => controller.abort(), 6000);
 
   try {
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${coords.lat}&longitude=${coords.lng}&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,rain,weather_code,wind_speed_10m,wind_gusts_10m,surface_pressure&hourly=precipitation,temperature_2m,wind_gusts_10m&forecast_days=1&timezone=Asia%2FKolkata`;
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${coords.lat}&longitude=${coords.lng}&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,rain,weather_code,wind_speed_10m,wind_gusts_10m,pressure_msl,surface_pressure&hourly=precipitation,temperature_2m,wind_gusts_10m&forecast_days=1&timezone=Asia%2FKolkata`;
     
     const res = await fetch(url, { signal: controller.signal });
     clearTimeout(timeoutId);
@@ -109,18 +109,39 @@ export async function fetchLiveSectorWeather(sectorKey = 'all_india', customCoor
     const curr = data.current || {};
     const windSpeed = Number(curr.wind_speed_10m ?? 12.0);
     const windGusts = Number(curr.wind_gusts_10m ?? (windSpeed * 1.55).toFixed(1));
-    const pressure = Number(curr.surface_pressure ?? 1008);
+    // Use Mean Sea Level Pressure (MSLP) - international meteorological standard for cyclone detection
+    const pressure = Number((curr.pressure_msl ?? curr.surface_pressure ?? 1008).toFixed(1));
     const weatherInfo = decodeWmoCode(curr.weather_code || 0, windSpeed, windGusts, pressure);
 
-    // Cyclone / Tufaan Alert Evaluation
-    const isCycloneAlert = pressure < 1000 || windGusts >= 48 || windSpeed >= 32 || coords.is_cyclone_zone;
+    // Dynamic Cyclone / Tufaan Alert Evaluation (Fully sensor-driven: triggers on real pressure drop & gale gusts)
+    const isCycloneAlert = pressure < 1002.0 || windGusts >= 48.0 || windSpeed >= 32.0;
     let stormAlertText = null;
+    let stormCategory = "Normal Coastal Waters";
+    let detectedStormName = null;
+
     if (isCycloneAlert) {
-      if (pressure < 995 || windGusts >= 65) {
-        stormAlertText = `🚨 SEVERE CYCLONE ALERT: Deep Depression "Arnab" active with gusts ${windGusts} km/h and central pressure ${pressure} hPa! High swell waves & coastal surge warning.`;
+      if (windSpeed >= 89.0 || windGusts >= 115.0) {
+        stormCategory = "Severe Cyclonic Storm (SCS)";
+      } else if (windSpeed >= 62.0 || windGusts >= 88.0) {
+        stormCategory = "Cyclonic Storm (CS)";
+      } else if (pressure < 995.0 || windGusts >= 55.0) {
+        stormCategory = "Deep Depression";
       } else {
-        stormAlertText = `⚠️ CYCLONIC DEPRESSION WARNING: Sustained wind ${windSpeed} km/h with gusts up to ${windGusts} km/h. Sea condition rough.`;
+        stormCategory = "Depression / Coastal Strong Gale";
       }
+
+      // Dynamic basin identification (Arabian Sea < 77.5°E, Bay of Bengal >= 77.5°E)
+      const isBayOfBengal = (coords.lng >= 77.5);
+      const basinName = isBayOfBengal ? "Bay of Bengal" : "Arabian Sea";
+      
+      // If inspecting the current active system corridor (Kalingapatnam / AP / Odisha)
+      if (sectorKey === 'cyclone_arnab' || (coords.lat >= 16.5 && coords.lat <= 20.5 && coords.lng >= 83.0 && coords.lng <= 86.5 && pressure < 996)) {
+        detectedStormName = `Deep Depression "Arnab" (${basinName})`;
+      } else {
+        detectedStormName = `${stormCategory} (${basinName} - ${coords.name.split(',')[0].trim()})`;
+      }
+
+      stormAlertText = `🚨 ${stormCategory.toUpperCase()}: Active system with gusts ${windGusts} km/h and central MSLP ${pressure} hPa! High swell waves & coastal surge warning.`;
     }
 
     return {
@@ -133,12 +154,13 @@ export async function fetchLiveSectorWeather(sectorKey = 'all_india', customCoor
       precipitation_mm: Number((curr.precipitation ?? 0.0).toFixed(1)),
       wind_speed_kmh: Number(windSpeed.toFixed(1)),
       wind_gusts_kmh: Number(windGusts.toFixed(1)),
-      pressure_hpa: Number(pressure.toFixed(1)),
+      pressure_hpa: pressure,
       condition: weatherInfo.label,
       condition_icon: weatherInfo.icon,
       severity: weatherInfo.severity,
       is_cyclone_alert: Boolean(isCycloneAlert),
-      storm_name: isCycloneAlert ? "Arnab (Bay of Bengal System)" : null,
+      storm_name: isCycloneAlert ? detectedStormName : null,
+      storm_category: isCycloneAlert ? stormCategory : null,
       storm_alert_text: stormAlertText,
       sea_condition: isCycloneAlert ? "Rough to Very Rough (3.0m - 4.5m Wave Swell)" : "Normal Marine Conditions",
       hourly_rain: (data.hourly?.precipitation || []).slice(0, 8),
