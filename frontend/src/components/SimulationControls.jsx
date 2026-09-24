@@ -1,5 +1,5 @@
 import React from 'react';
-import { CloudRain, Waves, Droplets, Zap, AlertTriangle, Radio, RefreshCw, Thermometer, Wind, Lock } from 'lucide-react';
+import { CloudRain, Waves, Droplets, Zap, AlertTriangle, Radio, RefreshCw, Thermometer, Wind, Lock, Gauge, MapPin } from 'lucide-react';
 
 export default function SimulationControls({
   simParams,
@@ -12,7 +12,8 @@ export default function SimulationControls({
   currentSector: _currentSector,
   liveWeather,
   operationalMode = 'LIVE',
-  onModeChange
+  onModeChange,
+  onDetectLocation
 }) {
   const isCloudburst = simParams.rainfall_mm_hr >= 115;
   const isHeavyRain = simParams.rainfall_mm_hr >= 65;
@@ -167,7 +168,7 @@ export default function SimulationControls({
       <div style={{ background: '#0a1d35', border: '1px solid #1e3a5f', borderRadius: '6px', padding: '9px 11px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '7px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ fontSize: '17px' }}>{liveWeather?.condition_icon || '🌧️'}</span>
+            <span style={{ fontSize: '18px' }}>{liveWeather?.condition_icon || '🌧️'}</span>
             <div>
               <div style={{ fontWeight: '800', fontSize: '11.5px', color: '#ffffff' }}>
                 {liveWeather?.condition || 'Monsoon Telemetry'}
@@ -182,14 +183,38 @@ export default function SimulationControls({
           </span>
         </div>
 
-        {/* 4-Metric Grid */}
+        {/* Active Cyclone / Severe Weather Warning Callout */}
+        {liveWeather?.is_cyclone_alert && (
+          <div style={{
+            background: 'rgba(220, 38, 38, 0.2)',
+            border: '1px solid #ef4444',
+            borderRadius: '5px',
+            padding: '6px 8px',
+            marginBottom: '7px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '7px'
+          }}>
+            <span style={{ fontSize: '15px' }} className="spin-animate">🌀</span>
+            <div style={{ fontSize: '10px', lineHeight: 1.35 }}>
+              <strong style={{ color: '#ffffff', display: 'block' }}>
+                {liveWeather.storm_name || 'Deep Depression / Cyclone Warning'}
+              </strong>
+              <span style={{ color: '#fca5a5' }}>
+                Gale Gusts: <b>{liveWeather.wind_gusts_kmh ?? 55} km/h</b> &bull; Central Pressure: <b>{liveWeather.pressure_hpa} hPa</b>
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* 6-Metric Grid */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '5px' }}>
           <div style={{ background: '#071526', padding: '5px 7px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
             <Thermometer size={13} color="#f59e0b" />
             <div>
               <div style={{ fontSize: '8.5px', color: '#94a3b8' }}>Temperature</div>
               <div style={{ fontSize: '11.5px', fontWeight: '800', color: '#ffffff' }}>
-                {liveWeather?.temperature_c ?? 24.5}&deg;C
+                {liveWeather?.temperature_c ?? 28.5}&deg;C
               </div>
             </div>
           </div>
@@ -205,25 +230,72 @@ export default function SimulationControls({
           </div>
 
           <div style={{ background: '#071526', padding: '5px 7px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <Droplets size={13} color="#60a5fa" />
+            <Wind size={13} color={(liveWeather?.wind_gusts_kmh > 45 ? '#f87171' : '#4ade80')} />
             <div>
-              <div style={{ fontSize: '8.5px', color: '#94a3b8' }}>Humidity</div>
-              <div style={{ fontSize: '11.5px', fontWeight: '800', color: '#60a5fa' }}>
-                {liveWeather?.humidity_pct ?? 75}%
+              <div style={{ fontSize: '8.5px', color: '#94a3b8' }}>Wind &amp; Gale Gusts</div>
+              <div style={{ fontSize: '11px', fontWeight: '800', color: (liveWeather?.wind_gusts_kmh > 45 ? '#fca5a5' : '#4ade80') }}>
+                {liveWeather?.wind_speed_kmh ?? 12} km/h <span style={{ fontSize: '9px', color: '#cbd5e1' }}>({liveWeather?.wind_gusts_kmh ?? 25} g)</span>
               </div>
             </div>
           </div>
 
           <div style={{ background: '#071526', padding: '5px 7px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <Wind size={13} color="#4ade80" />
+            <Gauge size={13} color={(liveWeather?.pressure_hpa < 1000 ? '#38bdf8' : '#cbd5e1')} />
             <div>
-              <div style={{ fontSize: '8.5px', color: '#94a3b8' }}>Wind Speed</div>
-              <div style={{ fontSize: '11.5px', fontWeight: '800', color: '#4ade80' }}>
-                {liveWeather?.wind_speed_kmh ?? 8.5} km/h
+              <div style={{ fontSize: '8.5px', color: '#94a3b8' }}>Barometric Pressure</div>
+              <div style={{ fontSize: '11px', fontWeight: '800', color: (liveWeather?.pressure_hpa < 1000 ? '#38bdf8' : '#cbd5e1') }}>
+                {liveWeather?.pressure_hpa ?? 1008} hPa
+              </div>
+            </div>
+          </div>
+
+          <div style={{ background: '#071526', padding: '5px 7px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <Droplets size={13} color="#60a5fa" />
+            <div>
+              <div style={{ fontSize: '8.5px', color: '#94a3b8' }}>Humidity</div>
+              <div style={{ fontSize: '11.5px', fontWeight: '800', color: '#60a5fa' }}>
+                {liveWeather?.humidity_pct ?? 82}%
+              </div>
+            </div>
+          </div>
+
+          <div style={{ background: '#071526', padding: '5px 7px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <Waves size={13} color="#fb923c" />
+            <div>
+              <div style={{ fontSize: '8.5px', color: '#94a3b8' }}>Sea Swell / Wave</div>
+              <div style={{ fontSize: '10.5px', fontWeight: '800', color: '#fdba74' }}>
+                {liveWeather?.is_cyclone_alert ? '3.5 - 4.5m Rough' : '0.5 - 1.2m Calm'}
               </div>
             </div>
           </div>
         </div>
+
+        {/* Detect User's Real Device Location Weather Button */}
+        {onDetectLocation && (
+          <button
+            onClick={onDetectLocation}
+            style={{
+              width: '100%',
+              marginTop: '7px',
+              background: '#071526',
+              border: '1px solid #1e40af',
+              color: '#38bdf8',
+              padding: '5px 8px',
+              borderRadius: '4px',
+              fontSize: '10.5px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '5px',
+              transition: 'all 0.15s'
+            }}
+          >
+            <MapPin size={12} color="#38bdf8" />
+            <span>Detect My Real-Time Location Weather</span>
+          </button>
+        )}
       </div>
 
       {/* 4. Current Hazard Severity Indicator */}

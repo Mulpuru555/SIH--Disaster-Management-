@@ -4,6 +4,26 @@
 
 export const NATIONAL_HOTSPOTS = [
   {
+    "id": "IND-CYC-00",
+    "sector_key": "cyclone_arnab",
+    "state": "Andhra Pradesh & Odisha",
+    "category": "Coastal & Cyclone Corridors",
+    "district": "Kalingapatnam & Srikakulam Coast (Arnab Tufaan Landfall)",
+    "lat": 18.330,
+    "lng": 84.120,
+    "hazard_type": "Deep Depression Gale & Storm Surge (Arnab Tufaan)",
+    "alert_level": "RED",
+    "alert_badge": "🚨 RED ALERT (CYCLONE)",
+    "habitations_at_risk": 12,
+    "population_at_risk": 8600,
+    "rainfall_rate": "Active Landfall (75 km/h Gusts)",
+    "wind_speed_kmh": 55,
+    "river_basin": "Nagavali & Vamsadhara Delta",
+    "status": "Section 34 Evacuation Active / SDRF & NDRF Deployed",
+    "pilot_available": true,
+    "zoom": 11
+  },
+  {
     "id": "IND-UK-01",
     "sector_key": "uttarakhand",
     "state": "Uttarakhand",
@@ -739,6 +759,19 @@ export const OPERATIONAL_SECTORS = [
     "districtName": "National Multi-District Scope"
   },
   {
+    "id": "cyclone_arnab",
+    "state": "Andhra Pradesh & Odisha",
+    "category": "Coastal & Cyclone Corridors",
+    "label": "🌀 Active Storm Arnab: Kalingapatnam / AP & Odisha Coast (Deep Depression Landfall)",
+    "center": [
+      18.330,
+      84.120
+    ],
+    "zoom": 11,
+    "districtName": "Kalingapatnam Coastal Zone (Srikakulam & Ganjam)",
+    "is_cyclone_zone": true
+  },
+  {
     "id": "uttarakhand",
     "state": "Uttarakhand",
     "category": "Himalayan & Hill States",
@@ -1173,6 +1206,108 @@ export const OPERATIONAL_SECTORS = [
 ];
 
 export const DISTRICT_HABITATIONS = {
+  "cyclone_arnab": [
+    {
+      "id": "ARN-H1",
+      "name": "Kalingapatnam Lighthouse Coastal Hamlet",
+      "taluk": "Gara Mandal (Kalingapatnam Coast)",
+      "district": "Srikakulam Coast (Landfall Epicenter)",
+      "state": "Andhra Pradesh",
+      "lat": 18.332,
+      "lng": 84.125,
+      "population": 2400,
+      "elderly_count": 340,
+      "infant_count": 220,
+      "pwd_count": 58,
+      "kutcha_houses": 520,
+      "slope_degrees": 1.5,
+      "elevation_m": 4.0,
+      "river_distance_m": 45.0,
+      "coastal_distance_m": 80.0,
+      "terrain_description": "Coastal Lowland Dunes (80m from High Tide Line / Active Cyclone Swell)",
+      "historical_disaster_count": 6,
+      "zone": "RED",
+      "hazard_score": 0.88,
+      "factor_of_safety": 0.95,
+      "sovi_score": 0.68,
+      "priority_score": 1.14
+    },
+    {
+      "id": "ARN-H2",
+      "name": "Bhavanapadu Fishing Creek Settlement",
+      "taluk": "Santhabommali Mandal",
+      "district": "Srikakulam Coast",
+      "state": "Andhra Pradesh",
+      "lat": 18.348,
+      "lng": 84.162,
+      "population": 1850,
+      "elderly_count": 260,
+      "infant_count": 180,
+      "pwd_count": 42,
+      "kutcha_houses": 390,
+      "slope_degrees": 1.2,
+      "elevation_m": 5.0,
+      "river_distance_m": 60.0,
+      "coastal_distance_m": 120.0,
+      "terrain_description": "Tidal Creek & Fisher Pier Ward (Vulnerable to 3m Storm Surge Inundation)",
+      "historical_disaster_count": 5,
+      "zone": "RED",
+      "hazard_score": 0.84,
+      "factor_of_safety": 1.02,
+      "sovi_score": 0.62,
+      "priority_score": 1.06
+    },
+    {
+      "id": "ARN-H3",
+      "name": "Baruva Lowland Coastal Basti",
+      "taluk": "Sompeta Mandal (Baruva Coast)",
+      "district": "Srikakulam & Ganjam Border",
+      "state": "Andhra Pradesh",
+      "lat": 18.375,
+      "lng": 84.215,
+      "population": 1600,
+      "elderly_count": 210,
+      "infant_count": 150,
+      "pwd_count": 35,
+      "kutcha_houses": 310,
+      "slope_degrees": 1.8,
+      "elevation_m": 6.5,
+      "river_distance_m": 90.0,
+      "coastal_distance_m": 180.0,
+      "terrain_description": "Coastal Lowland Buffer (Subject to Gale Inundation & Salt Intrusion)",
+      "historical_disaster_count": 4,
+      "zone": "RED",
+      "hazard_score": 0.79,
+      "factor_of_safety": 1.10,
+      "sovi_score": 0.58,
+      "priority_score": 0.99
+    },
+    {
+      "id": "ARN-H4",
+      "name": "Srikakulam Nagavali Estuary Ward",
+      "taluk": "Srikakulam Urban Division",
+      "district": "Srikakulam District",
+      "state": "Andhra Pradesh",
+      "lat": 18.305,
+      "lng": 84.020,
+      "population": 2800,
+      "elderly_count": 380,
+      "infant_count": 250,
+      "pwd_count": 65,
+      "kutcha_houses": 480,
+      "slope_degrees": 2.0,
+      "elevation_m": 12.0,
+      "river_distance_m": 50.0,
+      "coastal_distance_m": 3500.0,
+      "terrain_description": "Nagavali River Delta Floodplain (Estuary Backflow Hazard)",
+      "historical_disaster_count": 4,
+      "zone": "ORANGE",
+      "hazard_score": 0.68,
+      "factor_of_safety": 1.25,
+      "sovi_score": 0.52,
+      "priority_score": 0.82
+    }
+  ],
   "uttarakhand": [
     {
       "id": "UTT-H1",
@@ -4122,6 +4257,62 @@ export const DISTRICT_HABITATIONS = {
 };
 
 export const DISTRICT_SHELTERS = {
+  "cyclone_arnab": [
+    {
+      "id": "S-ARN-1",
+      "name": "Kalingapatnam Multipurpose Cyclone Shelter (NDMA Reinforced)",
+      "taluk": "Gara Mandal (Kalingapatnam)",
+      "district": "Srikakulam Coast",
+      "state": "Andhra Pradesh",
+      "lat": 18.338,
+      "lng": 84.118,
+      "usable_area_sqm": 8500,
+      "beds": 3500,
+      "water_liters": 220000,
+      "ration_packets": 15000,
+      "toilets_count": 120,
+      "medical_staff_count": 48,
+      "effective_capacity": 3500,
+      "current_occupancy": 0,
+      "bottleneck_resource": "Beds"
+    },
+    {
+      "id": "S-ARN-2",
+      "name": "Bhavanapadu High-Ground Coastal Disaster Camp",
+      "taluk": "Santhabommali Mandal",
+      "district": "Srikakulam Coast",
+      "state": "Andhra Pradesh",
+      "lat": 18.355,
+      "lng": 84.155,
+      "usable_area_sqm": 7200,
+      "beds": 2500,
+      "water_liters": 160000,
+      "ration_packets": 11000,
+      "toilets_count": 95,
+      "medical_staff_count": 36,
+      "effective_capacity": 2500,
+      "current_occupancy": 0,
+      "bottleneck_resource": "Water"
+    },
+    {
+      "id": "S-ARN-3",
+      "name": "Srikakulam Zilla Parishad Cyclone Relief Complex",
+      "taluk": "Srikakulam Central",
+      "district": "Srikakulam District",
+      "state": "Andhra Pradesh",
+      "lat": 18.298,
+      "lng": 83.896,
+      "usable_area_sqm": 9500,
+      "beds": 4200,
+      "water_liters": 280000,
+      "ration_packets": 18000,
+      "toilets_count": 140,
+      "medical_staff_count": 55,
+      "effective_capacity": 4200,
+      "current_occupancy": 0,
+      "bottleneck_resource": "Medical Staff"
+    }
+  ],
   "uttarakhand": [
     {
       "id": "S-UTT-1",
@@ -6077,6 +6268,31 @@ export const DISTRICT_SHELTERS = {
 };
 
 export const DISTRICT_RESETTLEMENT = {
+  "cyclone_arnab": [
+    {
+      "id": "RS-ARN-1",
+      "name": "Arasavalli Highland Elevated Township (Srikakulam)",
+      "lat": 18.315,
+      "lng": 83.910,
+      "available_land_sqm": 450000,
+      "slope_degrees": 3.2,
+      "carrying_capacity_population": 6500,
+      "suitability_score": 96.0,
+      "survey_nos": "Sy. Nos. AP-SRIK-412/1, 415/B",
+      "taluk": "Srikakulam Rural Revenue Division",
+      "water_table_depth_m": 18.0,
+      "planned_houses": 1400,
+      "civic_amenities": [
+        "Community Health Centre (50-Bed High-Ground)",
+        "Piped RO Drinking Water Supply",
+        "Senior Secondary Govt Model School",
+        "4-Lane Concrete Arterial Road to NH-16",
+        "Dedicated Stormwater Gravity Drainage Grid"
+      ],
+      "target_population": "Kalingapatnam & Coastal Fisher Families Displaced by Cyclone Surge",
+      "status": "State Disaster Mitigation Fund (SDMF) Notified Tableland"
+    }
+  ],
   "uttarakhand": [
     {
       "id": "RS-UTT-1",

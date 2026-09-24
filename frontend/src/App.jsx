@@ -9,12 +9,12 @@ import SheltersMatrix from './components/SheltersMatrix';
 import XAIModal from './components/XAIModal';
 import DispatchModal from './components/DispatchModal';
 import AlertBanner from './components/AlertBanner';
+import ActiveStormBanner from './components/ActiveStormBanner';
 import AIAssistantModal from './components/AIAssistantModal';
 import OperationalOrderModal from './components/OperationalOrderModal';
 import LiveTelemetryModal from './components/LiveTelemetryModal';
 import GeoJSONUploadModal from './components/GeoJSONUploadModal';
 import AuditGovernanceModal from './components/AuditGovernanceModal';
-
 
 import {
   INITIAL_HABITATIONS,
@@ -25,13 +25,14 @@ import {
   computeLocalSimulation
 } from './services/localEngine';
 
-import { fetchLiveSectorWeather } from './services/weatherApi';
+import { fetchLiveSectorWeather, detectDeviceLocationWeather } from './services/weatherApi';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('gis'); // 'gis', 'habitations', 'shelters', 'resettlement'
   const [currentSector, setCurrentSector] = useState('all_india'); // 'all_india' or any of 36 states/UTs
   const [horizon, setHorizon] = useState('immediate'); // 'immediate', 'short_term', 'medium_term'
   const [operationalMode, setOperationalMode] = useState('LIVE'); // 'LIVE' (Real-Time Sensor Telemetry) | 'SIMULATION' (What-If Sandbox)
+  const [isRadarActive, setIsRadarActive] = useState(false); // Live Doppler Satellite Radar state
 
   const [simParams, setSimParams] = useState({
     rainfall_mm_hr: 0.0,
@@ -97,12 +98,46 @@ export default function App() {
     setShelters(secData.shelters);
     setResettlementSites(secData.resettlement);
 
+    if (newSectorId === 'cyclone_arnab') {
+      setIsRadarActive(true); // Automatically activate live Doppler radar for storm tracking
+    }
+
     const sectorObj = OPERATIONAL_SECTORS.find(s => s.id === newSectorId);
     setNotification({
       title: `OPERATIONAL JURISDICTION: ${sectorObj?.label || newSectorId}`,
-      message: 'High-resolution geotechnical slope models, local relief inventory, and AWS radar synchronized.',
+      message: newSectorId === 'cyclone_arnab'
+        ? 'Deep Depression "Arnab" Landfall Corridor active. Real-time gale telemetry & Doppler radar synchronized.'
+        : 'High-resolution geotechnical slope models, local relief inventory, and AWS radar synchronized.',
+      type: newSectorId === 'cyclone_arnab' ? 'warning' : 'info'
+    });
+  };
+
+  // Device Geolocation & Live Weather Detection
+  const handleDetectLocation = async () => {
+    setNotification({
+      title: 'LOCATING DEVICE GPS...',
+      message: 'Acquiring precision browser coordinates and live Open-Meteo AWS feeds.',
       type: 'info'
     });
+    try {
+      const result = await detectDeviceLocationWeather();
+      if (result.success && result.weather) {
+        setLiveWeather(result.weather);
+        setNotification({
+          title: `LIVE LOCAL WEATHER: ${result.coords.lat.toFixed(2)}°N, ${result.coords.lng.toFixed(2)}°E`,
+          message: `${result.weather.condition} • Wind: ${result.weather.wind_speed_kmh} km/h (Gusts: ${result.weather.wind_gusts_kmh} km/h) • Rain: ${result.weather.precipitation_mm} mm • Pressure: ${result.weather.pressure_hpa} hPa`,
+          type: result.weather.is_cyclone_alert ? 'warning' : 'info'
+        });
+      } else {
+        setNotification({
+          title: 'LOCATION ACQUISITION NOTICE',
+          message: result.error || 'Unable to acquire device GPS. Using regional AWS station.',
+          type: 'warning'
+        });
+      }
+    } catch (e) {
+      console.warn('Location detection error:', e);
+    }
   };
 
   // Re-run hazard evaluation and optimization whenever simulation parameters, horizon, or sector changes
@@ -330,6 +365,15 @@ export default function App() {
         </div>
       </div>
 
+      {/* Active Storm Arnab Operational Warning & Quick Actions Banner */}
+      <ActiveStormBanner
+        onSelectStormSector={handleSectorChange}
+        onToggleRadar={() => setIsRadarActive(prev => !prev)}
+        isRadarActive={isRadarActive}
+        onDetectLocation={handleDetectLocation}
+        currentSector={currentSector}
+      />
+
       {/* Metrics Overview Bar */}
       <MetricsOverview
         habitations={habitations}
@@ -362,6 +406,7 @@ export default function App() {
               liveWeather={liveWeather}
               operationalMode={operationalMode}
               onModeChange={setOperationalMode}
+              onDetectLocation={handleDetectLocation}
             />
           </aside>
 
@@ -377,6 +422,9 @@ export default function App() {
               onSectorChange={handleSectorChange}
               onSelectHabitation={h => setSelectedHabitationForXAI(h)}
               liveWeather={liveWeather}
+              isRadarActive={isRadarActive}
+              onToggleRadar={() => setIsRadarActive(prev => !prev)}
+              onDetectLocation={handleDetectLocation}
             />
           </section>
 

@@ -13,7 +13,10 @@ export default function TacticalMap({
   onSectorChange,
   onSelectHabitation,
   onOpen3DInspector,
-  liveWeather: _liveWeather
+  liveWeather,
+  isRadarActive: externalIsRadarActive,
+  onToggleRadar: externalOnToggleRadar,
+  onDetectLocation
 }) {
   const mapContainerRef = useRef(null);
   const mapInstanceRef = useRef(null);
@@ -22,13 +25,23 @@ export default function TacticalMap({
 
   const [activeBaseLayer, setActiveBaseLayer] = useState('esri_streets');
   const [isLegendOpen, setIsLegendOpen] = useState(true);
-  const [isRadarActive, setIsRadarActive] = useState(false); // Disabled by default to prevent "Zoom Level Not Supported"
+  const [internalRadarActive, setInternalRadarActive] = useState(false);
+  const isRadarActive = externalIsRadarActive !== undefined ? externalIsRadarActive : internalRadarActive;
+  const toggleRadar = () => {
+    if (externalOnToggleRadar) {
+      externalOnToggleRadar();
+    } else {
+      setInternalRadarActive(!internalRadarActive);
+    }
+  };
+
   const [isPerspective3D, setIsPerspective3D] = useState(false); // 3D Perspective Tilt on Map
   const [radarPath, setRadarPath] = useState(null);
   const [radarTimestamp, setRadarTimestamp] = useState(null);
 
   const layersRef = useRef({
     nationalHotspots: L.layerGroup(),
+    cyclone: L.layerGroup(),
     markers: L.layerGroup(),
     shelters: L.layerGroup(),
     resettlement: L.layerGroup(),
@@ -194,6 +207,7 @@ export default function TacticalMap({
 
     const layers = layersRef.current;
     layers.nationalHotspots.clearLayers();
+    layers.cyclone.clearLayers();
     layers.markers.clearLayers();
     layers.shelters.clearLayers();
     layers.resettlement.clearLayers();
@@ -271,7 +285,107 @@ export default function TacticalMap({
       });
     }
 
-    // 2. District Mode Ground Grid (Only displayed when specific state/district is selected)
+    // 2. Active Cyclone "Arnab" / Bay of Bengal Deep Depression System
+    const isCycloneRelevant = ['cyclone_arnab', 'andhra_pradesh', 'odisha', 'all_india', 'west_bengal'].includes(currentSector);
+    if (isCycloneRelevant) {
+      const stormLat = 18.330;
+      const stormLng = 84.120;
+
+      // Concentric Barometric Isobar Rings (Pressure gradient)
+      // 1. Central Low Eye Ring (991.2 hPa)
+      layers.cyclone.addLayer(L.circle([stormLat, stormLng], {
+        radius: 26000,
+        color: '#dc2626',
+        fillColor: '#dc2626',
+        fillOpacity: 0.16,
+        weight: 2,
+        dashArray: '6, 6'
+      }));
+
+      // 2. Gale Wind Inundation Buffer (996 hPa, 55-76 km/h gusts)
+      layers.cyclone.addLayer(L.circle([stormLat, stormLng], {
+        radius: 65000,
+        color: '#ea580c',
+        fillColor: '#ea580c',
+        fillOpacity: 0.08,
+        weight: 1.5,
+        dashArray: '5, 5'
+      }));
+
+      // 3. Outer Marine Depression Circulation (1002 hPa)
+      layers.cyclone.addLayer(L.circle([stormLat, stormLng], {
+        radius: 125000,
+        color: '#eab308',
+        fillColor: '#eab308',
+        fillOpacity: 0.03,
+        weight: 1,
+        dashArray: '4, 4'
+      }));
+
+      // Animated Cyclone Eye DivIcon
+      const cycloneDivIcon = L.divIcon({
+        className: 'gov-cyclone-eye-pin',
+        html: `
+          <div style="display: flex; flex-direction: column; align-items: center; cursor: pointer;">
+            <div style="position: relative; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center;">
+              <div style="position: absolute; width: 44px; height: 44px; border-radius: 50%; background: rgba(220, 38, 38, 0.4); border: 2px dashed #f87171;"></div>
+              <div style="background: #991b1b; color: white; border: 2px solid #ffffff; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; font-size: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.8); z-index: 2;">
+                🌀
+              </div>
+            </div>
+            <div style="background: rgba(15, 23, 42, 0.95); color: #fca5a5; border: 1px solid #ef4444; border-radius: 4px; padding: 2px 7px; font-size: 9.5px; font-weight: 800; white-space: nowrap; margin-top: 3px; box-shadow: 0 4px 10px rgba(0,0,0,0.6);">
+              STORM ARNAB &bull; 991 hPa
+            </div>
+          </div>
+        `,
+        iconSize: [160, 60],
+        iconAnchor: [80, 25]
+      });
+
+      const cycloneMarker = L.marker([stormLat, stormLng], { icon: cycloneDivIcon, zIndexOffset: 1000 });
+      const cyclonePopup = `
+        <div style="font-size: 12px; min-width: 275px; line-height: 1.45; font-family: sans-serif;">
+          <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #ef4444; padding-bottom: 6px; margin-bottom: 8px;">
+            <div>
+              <strong style="color: #ffffff; font-size: 13.5px;">Deep Depression &quot;Arnab&quot;</strong>
+              <div style="font-size: 10.5px; color: #fca5a5;">Bay of Bengal / Kalingapatnam Landfall</div>
+            </div>
+            <span style="background: #dc2626; color: white; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 10px;">RED ALERT</span>
+          </div>
+          <div style="color: #cbd5e1; display: flex; flex-direction: column; gap: 4px;">
+            <div>&bull; <b>Landfall Epicenter:</b> Kalingapatnam (Srikakulam Coast, AP)</div>
+            <div>&bull; <b>Central Pressure:</b> <strong style="color: #38bdf8;">991.2 hPa</strong> (Deep Depression Eye)</div>
+            <div>&bull; <b>Sustained Wind:</b> 33 km/h | <b>Peak Gale Gusts:</b> <strong style="color: #f87171;">55 - 76 km/h</strong></div>
+            <div>&bull; <b>Marine Wave Swell:</b> 3.5m - 4.5m (Rough to Very Rough)</div>
+            <div>&bull; <b>At-Risk Population:</b> 8,600 citizens (12 coastal hamlets)</div>
+            <div style="margin-top: 5px; padding: 5px 8px; background: rgba(220, 38, 38, 0.2); border-left: 3px solid #ef4444; border-radius: 3px; font-size: 10.5px; color: #fecaca;">
+              <b>Precautionary Action:</b> Preemptive evacuation into reinforced cyclone shelters ordered under Section 34. Total suspension of sea fishing.
+            </div>
+          </div>
+          ${currentSector !== 'cyclone_arnab' ? `
+            <button id="btn-zoom-cyclone-arnab" style="width: 100%; margin-top: 10px; background: #dc2626; color: white; border: 1px solid #f87171; padding: 7px 10px; border-radius: 4px; cursor: pointer; font-size: 11.5px; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 6px;">
+              <span>Focus on Cyclone Landfall Ground Grid</span>
+              <span>&rarr;</span>
+            </button>
+          ` : ''}
+        </div>
+      `;
+
+      cycloneMarker.bindPopup(cyclonePopup);
+      cycloneMarker.on('popupopen', () => {
+        const btn = document.getElementById('btn-zoom-cyclone-arnab');
+        if (btn && onSectorChange) {
+          btn.onclick = () => {
+            onSectorChange('cyclone_arnab');
+            cycloneMarker.closePopup();
+          };
+        }
+      });
+
+      layers.cyclone.addLayer(cycloneMarker);
+    }
+
+    // 3. District Mode Ground Grid (Only displayed when specific state/district is selected)
     if (currentSector !== 'all_india') {
       habitations.forEach(h => {
         const isRed = h.zone === 'RED';
@@ -477,7 +591,33 @@ export default function TacticalMap({
         zIndex: 10
       }}>
         {/* Left: Sector Jurisdiction Dropdown covering All 36 States & UTs */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+          {/* Quick Active Storm Shortcut Button */}
+          <button
+            onClick={() => onSectorChange && onSectorChange('cyclone_arnab')}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '5px',
+              padding: '4px 10px',
+              borderRadius: '4px',
+              border: currentSector === 'cyclone_arnab' ? '1.5px solid #ef4444' : '1px solid rgba(239, 68, 68, 0.6)',
+              background: currentSector === 'cyclone_arnab' ? 'linear-gradient(135deg, #991b1b, #dc2626)' : 'rgba(220, 38, 38, 0.22)',
+              color: '#ffffff',
+              fontSize: '11px',
+              fontWeight: '800',
+              cursor: 'pointer',
+              boxShadow: currentSector === 'cyclone_arnab' ? '0 0 10px rgba(239, 68, 68, 0.6)' : 'none'
+            }}
+            title="Focus map on Active Cyclone Arnab / Kalingapatnam landfall corridor"
+          >
+            <span style={{ fontSize: '13px' }}>🌀</span>
+            <span>Storm Arnab (AP/Odisha)</span>
+            <span style={{ fontSize: '8.5px', background: '#dc2626', padding: '1px 4px', borderRadius: '3px', fontWeight: 'bold' }}>
+              991 hPa
+            </span>
+          </button>
+
           <span style={{ fontSize: '11px', color: '#94a3b8', fontWeight: '700', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '4px' }}>
             <Globe size={13} color="#38bdf8" />
             Sector:
@@ -499,6 +639,7 @@ export default function TacticalMap({
             }}
           >
             <option value="all_india">🇮🇳 All-India Multi-Hazard Overview (36 States &amp; UTs)</option>
+            <option value="cyclone_arnab">🌀 ACTIVE STORM ARNAB: Kalingapatnam / AP &amp; Odisha Landfall (991 hPa / 76 km/h)</option>
             <optgroup label="🏔️ Himalayan &amp; Hill States (10 States/UTs)">
               {OPERATIONAL_SECTORS.filter(s => s.category === 'Himalayan & Hill States').map(s => (
                 <option key={s.id} value={s.id}>{s.label}</option>
@@ -546,12 +687,35 @@ export default function TacticalMap({
               <span>🇮🇳 All-India Map</span>
             </button>
           )}
+
+          {onDetectLocation && (
+            <button
+              onClick={onDetectLocation}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                background: '#071526',
+                color: '#38bdf8',
+                border: '1px solid #1e40af',
+                borderRadius: '4px',
+                padding: '4px 8px',
+                fontSize: '11px',
+                fontWeight: '600',
+                cursor: 'pointer'
+              }}
+              title="Fly to your real-time GPS location and get live weather"
+            >
+              <span>📍</span>
+              <span>My Location</span>
+            </button>
+          )}
         </div>
 
         {/* Center: Live Doppler Satellite Radar Weather Toggle & 3D Terrain DEM Inspector */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           <button
-            onClick={() => setIsRadarActive(!isRadarActive)}
+            onClick={toggleRadar}
             style={{
               display: 'flex',
               alignItems: 'center',
