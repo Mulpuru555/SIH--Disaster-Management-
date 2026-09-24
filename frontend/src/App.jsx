@@ -6,11 +6,15 @@ import SimulationControls from './components/SimulationControls';
 import RelocationPanel from './components/RelocationPanel';
 import HabitationsRegister from './components/HabitationsRegister';
 import SheltersMatrix from './components/SheltersMatrix';
-import ResettlementTownships from './components/ResettlementTownships';
 import XAIModal from './components/XAIModal';
 import DispatchModal from './components/DispatchModal';
 import AlertBanner from './components/AlertBanner';
-import Terrain3DInspector from './components/Terrain3DInspector';
+import AIAssistantModal from './components/AIAssistantModal';
+import OperationalOrderModal from './components/OperationalOrderModal';
+import LiveTelemetryModal from './components/LiveTelemetryModal';
+import GeoJSONUploadModal from './components/GeoJSONUploadModal';
+import AuditGovernanceModal from './components/AuditGovernanceModal';
+
 
 import {
   INITIAL_HABITATIONS,
@@ -45,8 +49,12 @@ export default function App() {
   const [liveWeather, setLiveWeather] = useState(null);
   const [notification, setNotification] = useState(null);
   const [selectedHabitationForXAI, setSelectedHabitationForXAI] = useState(null);
-  const [selectedHabitationFor3D, setSelectedHabitationFor3D] = useState(null);
   const [isManifestOpen, setIsManifestOpen] = useState(false);
+  const [isAIAssistantOpen, setIsAIAssistantOpen] = useState(false);
+  const [isOpOrdOpen, setIsOpOrdOpen] = useState(false);
+  const [isTelemetryOpen, setIsTelemetryOpen] = useState(false);
+  const [isGISUploadOpen, setIsGISUploadOpen] = useState(false);
+  const [isAuditOpen, setIsAuditOpen] = useState(false);
   const [isExtreme, setIsExtreme] = useState(false);
 
   // Fetch real-time live weather from Open-Meteo API for selected sector
@@ -242,13 +250,26 @@ export default function App() {
     });
   };
 
+  const handleLayerApplied = (res) => {
+    setNotification({
+      title: `CUSTOM GIS HAZARD LAYER APPLIED: ${res.layer_name}`,
+      message: `Encompassed ${res.affected_habitations_count} habitations (${res.affected_population?.toLocaleString()} citizens) & severed ${res.blocked_corridors_count} road corridors.`,
+      type: 'warning'
+    });
+    setSimParams(prev => ({ ...prev, rainfall_mm_hr: prev.rainfall_mm_hr + 0.1 }));
+  };
+
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       {/* Top Official Government Header */}
       <Header
         activeTab={activeTab}
         onTabChange={setActiveTab}
-        onOpenManifest={() => setIsManifestOpen(true)}
+        onOpenManifest={() => setIsOpOrdOpen(true)}
+        onOpenAIAssistant={() => setIsAIAssistantOpen(true)}
+        onOpenTelemetry={() => setIsTelemetryOpen(true)}
+        onOpenGISUpload={() => setIsGISUploadOpen(true)}
+        onOpenAudit={() => setIsAuditOpen(true)}
         solverStatus={solverStats.status}
         horizon={horizon}
         onHorizonChange={setHorizon}
@@ -355,7 +376,6 @@ export default function App() {
               currentSector={currentSector}
               onSectorChange={handleSectorChange}
               onSelectHabitation={h => setSelectedHabitationForXAI(h)}
-              onOpen3DInspector={h => setSelectedHabitationFor3D(h)}
               liveWeather={liveWeather}
             />
           </section>
@@ -381,7 +401,6 @@ export default function App() {
           <HabitationsRegister
             habitations={habitations}
             onSelectHabitation={h => setSelectedHabitationForXAI(h)}
-            onOpen3DInspector={h => setSelectedHabitationFor3D(h)}
           />
         </main>
       )}
@@ -391,15 +410,6 @@ export default function App() {
         <main style={{ flex: 1 }}>
           <SheltersMatrix
             shelters={shelters}
-          />
-        </main>
-      )}
-
-      {/* Tab 4: Permanent Resettlement Townships */}
-      {activeTab === 'resettlement' && (
-        <main style={{ flex: 1 }}>
-          <ResettlementTownships
-            resettlementSites={resettlementSites}
           />
         </main>
       )}
@@ -439,19 +449,55 @@ export default function App() {
         />
       )}
 
-      {/* 3D Digital Elevation Model (DEM) & Inundation Inspector Modal */}
-      {selectedHabitationFor3D && (
-        <Terrain3DInspector
-          habitation={selectedHabitationFor3D}
-          onClose={() => setSelectedHabitationFor3D(null)}
+      {/* NDRF Official Operational Relocation Order (OP-ORD) Modal */}
+      {isOpOrdOpen && (
+        <OperationalOrderModal
+          isOpen={isOpOrdOpen}
+          onClose={() => setIsOpOrdOpen(false)}
+          currentSim={simParams}
+          habitations={habitations}
+          shelters={shelters}
         />
       )}
 
-      {/* NDRF Convoy Dispatch Manifest Modal */}
+      {/* NDRF AI Decision Support Assistant Modal */}
+      {isAIAssistantOpen && (
+        <AIAssistantModal
+          isOpen={isAIAssistantOpen}
+          onClose={() => setIsAIAssistantOpen(false)}
+        />
+      )}
+
+      {/* Live Hydro-Meteorological Telemetry (CWC / IMD) Modal */}
+      {isTelemetryOpen && (
+        <LiveTelemetryModal
+          isOpen={isTelemetryOpen}
+          onClose={() => setIsTelemetryOpen(false)}
+        />
+      )}
+
+      {/* Custom GIS Hazard Polygon Ingestion Modal */}
+      {isGISUploadOpen && (
+        <GeoJSONUploadModal
+          isOpen={isGISUploadOpen}
+          onClose={() => setIsGISUploadOpen(false)}
+          onLayerApplied={handleLayerApplied}
+        />
+      )}
+
+      {/* Legacy Dispatch Manifest Modal */}
       {isManifestOpen && (
         <DispatchModal
           evacuationPlan={evacuationPlan}
           onClose={() => setIsManifestOpen(false)}
+        />
+      )}
+
+      {/* National Disaster Relocation Audit & Cryptographic Governance Modal */}
+      {isAuditOpen && (
+        <AuditGovernanceModal
+          isOpen={isAuditOpen}
+          onClose={() => setIsAuditOpen(false)}
         />
       )}
     </div>

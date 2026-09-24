@@ -1,0 +1,392 @@
+=== SLIDE 1 ===
+Shape 1 [Subtitle 3]:
+  TITLE PAGE
+
+Shape 2 [Title 7]:
+  SMART INDIA HACKATHON 2026
+
+Shape 3 [TextBox 9]:
+  Problem Statement ID – SIH26191
+  Problem Statement Title- Intelligent Identification of Hazard-Based Red Zones, Carrying Capacity Assessment, and Immediate Relocation Needs for Vulnerable Habitations
+  Theme- Disaster Management
+  PS Category- Software
+  Team ID- Team 16
+  Team Name - BharatBytes
+
+=== SLIDE 2 ===
+Shape 1 [Slide Number Placeholder 5]:
+  2
+
+Shape 2 [Footer Placeholder 6]:
+  @SIH Idea submission- Template
+
+Shape 3 [TextBox 4]:
+  ResQGrid: AI-Powered Proactive Relocation IntelligenceRevolutionizing India's Disaster Resilience
+
+Shape 4 [Rounded Rectangle 7]:
+  Real-world issue: Flash floods, landslides (Wayanad, Himachal), and unplanned evacuations cause massive casualties, shelter bottlenecks, and severe resource wastage.
+
+Shape 5 [Rounded Rectangle 8]:
+  Why important: India loses ₹80,000+ crores annually to climate disasters; 30M+ people displaced in a decade. 85% of evacuation failures stem from blind shelter allocation & road cutoffs.
+
+Shape 6 [Rounded Rectangle 9]:
+  Solution: GeoAI system identifies dynamic red zones, models shelter carrying capacity, and optimizes preemptive relocation for vulnerable citizens.
+
+Shape 7 [Oval 13]:
+  Prototype
+  Video  |  Website  |  GitHub
+
+Shape 8 [Rounded Rectangle 11]:
+  CORE INNOVATIONGeoAI Relocation Decision Engine
+
+Shape 9 [Rounded Rectangle 12]:
+  PRIMARY FUNCTIONSMULTI-HAZARD RED-ZONING  |  CAPACITY-CONSTRAINED ROUTING
+
+Shape 10 [Rounded Rectangle 13]:
+  SAFETY & VULNERABILITY COMPLIANCE
+
+Shape 11 [Rounded Rectangle 14]:
+  SoVI Vulnerability Index
+  Prioritizes elderly, disabled, infants & kuccha houses
+
+Shape 12 [Rounded Rectangle 15]:
+  Road Severance AI
+  Detects submerged roads & landslides, routes convoys safely
+
+Shape 13 [Rounded Rectangle 16]:
+  Emergency Dispatch
+  One-click alert broadcast to SDMA, NDRF & Aapda Mitra
+
+Shape 14 [Rounded Rectangle 17]:
+  MONITORING & CAPACITY SUPPORT
+
+Shape 15 [Rounded Rectangle 18]:
+  Carrying Capacity
+  Live tracking of beds, water, food & sanitation limits
+
+Shape 16 [Rounded Rectangle 19]:
+  What-If Simulation
+  Simulates dam burst & rainfall escalation scenarios
+
+Shape 17 [Rounded Rectangle 20]:
+  Explainable AI (XAI)
+  SHAP transparency for District Magistrate approvals
+
+Shape 18 [TextBox 25]:
+  Risk  v  Solution
+
+Shape 19 [Rounded Rectangle 23]:
+  Chaotic Relocation
+
+Shape 20 [TextBox 27]:
+  ➔
+
+Shape 21 [Rounded Rectangle 25]:
+  Capacity-Aware Relocation
+
+Shape 22 [Rounded Rectangle 26]:
+  Shelter Overcrowding
+
+Shape 23 [TextBox 30]:
+  ➔
+
+Shape 24 [Rounded Rectangle 28]:
+  Dynamic Carrying Capacity
+
+Shape 25 [Rounded Rectangle 29]:
+  Black-Box AI Distrust
+
+Shape 26 [TextBox 33]:
+  ➔
+
+Shape 27 [Rounded Rectangle 31]:
+  Explainable AI (SHAP Metrics)
+
+Shape 28 [Rounded Rectangle 32]:
+  ⚡ EXAMPLE DECISION PIPELINE
+  • Village A: Critical Risk (1,200 people)• Shelter B: Capacity 2,500 | Available 1,800• Action: RELOCATE 1,200 (Priority: IMMEDIATE)• Route: State Hwy 4 (Clear of Inundation)
+
+Shape 29 [Oval 37]:
+  BharatBytes
+
+Shape 31 [Footer Placeholder 6]:
+  @SIH Idea submission- Template
+
+Shape 32 [Slide Number Placeholder 5]:
+  2
+
+=== SLIDE 3 ===
+Shape 1 [Title 1]:
+  TECHNICAL APPROACH
+
+Shape 2 [Slide Number Placeholder 5]:
+  3
+
+Shape 3 [Footer Placeholder 6]:
+  @SIH Idea submission- Template
+
+Shape 4 [TextBox 8]:
+  METHODOLOGY & PROCESS OFIMPLEMENTATION
+
+Shape 5 [Rounded Rectangle 8]:
+  1. Data Ingestion & Raster Prep
+  ISRO Bhuvan DEM, Sentinel-2, IMD rainfall & OSM mesh.
+
+Shape 6 [Rounded Rectangle 9]:
+  2. Dynamic GeoAI Red-Zone
+  XGBoost models slope instability & flood inundation.
+
+Shape 7 [Rounded Rectangle 10]:
+  3. Vulnerability Score (SoVI)
+  Demographic layer prioritizes elderly, infants & disabled.
+
+Shape 8 [Rounded Rectangle 11]:
+  4. Carrying Capacity Modeling
+  Live tracking of beds, water, ration & medical staff.
+
+Shape 9 [Rounded Rectangle 12]:
+  5. Capacity-Constrained Opt.
+  Google OR-Tools MILP calculates zero-overflow routes.
+
+Shape 10 [Oval 16]:
+  Detailed Report
+  Report  |  GitHub
+
+Shape 11 [Rounded Rectangle 14]:
+  SYSTEM ARCHITECTURE & PIPELINE
+  🛰️ DATA FEEDS
+  ISRO Bhuvan • Sentinel-2 • IMD AWS • OpenStreetMap
+  🤖 GEOAI & VULNERABILITY LAYER
+  GeoPandas / PostGIS • XGBoost Multi-Hazard • Demographic SoVI
+  ⚡ OPTIMIZATION ENGINE (MILP)
+  Google OR-Tools • Capacity Constraints • OSMNx Distance Matrix
+  📊 COMMAND GIS & DISPATCH
+  FastAPI Cloud Backend • React + Leaflet GIS • Field Mobile App
+  📐 Linear Optimization Formulation:Minimize: Sum(x_ij * Dist_ij * Risk_i)Subject to: Sum_i(x_ij) <= Capacity_j  (Zero Overflow)
+
+Shape 12 [TextBox 18]:
+  TECHNOLOGIES USED
+
+Shape 13 [Rounded Rectangle 16]:
+  FrontEnd
+  React and TailwindCSS are used for the frontend GIS dashboard.
+
+Shape 14 [Rounded Rectangle 17]:
+  BackEnd
+  FastAPI, GeoPandas & PostGIS are used for spatial data processing.
+
+Shape 15 [Rounded Rectangle 18]:
+  Optimization
+  Google OR-Tools (MILP) & OSMNx are used for capacity routing.
+
+Shape 16 [Rounded Rectangle 19]:
+  Deployment
+  Render, Vercel & Cloud PostgreSQL are used for deployment.
+
+Shape 17 [Rounded Rectangle 20]:
+  Data Feeds
+  ISRO Bhuvan, Sentinel-2, IMD AWS API, and OpenStreetMap.
+
+Shape 18 [Oval 25]:
+  BharatBytes
+
+Shape 20 [Slide Number Placeholder 5]:
+  3
+
+Shape 21 [Footer Placeholder 6]:
+  @SIH Idea submission- Template
+
+=== SLIDE 4 ===
+Shape 1 [Title 1]:
+  FEASIBILITY AND VIABILITY
+
+Shape 2 [Slide Number Placeholder 5]:
+  4
+
+Shape 3 [Footer Placeholder 6]:
+  @SIH Idea submission- Template
+
+Shape 4 [TextBox 17409]:
+  CAN IT BE BUILT, VALIDATED AND DEPLOYED?
+
+Shape 5 [Rounded Rectangle 7]:
+  FEASIBILITY ANALYSIS⭐⭐⭐⭐½
+  Infrastructure Reusability: Leverages existing state GIS portals and open satellite feeds, requiring minimal hardware installation.
+  Scalable Deployment: Can be implemented in high-risk pilot districts (e.g. Wayanad, Mandi) and expanded nationwide as needed.
+  Cost-Effectiveness: Setup cost is near-zero compared to building physical infrastructure or post-disaster rebuilding.
+  Authority Integration: Includes features like SOS alerts, shelter capacity telemetry, and DM manual override for disaster control.
+
+Shape 6 [Rounded Rectangle 8]:
+  VIABILITY✔ Proven & Transparent
+  Proven Concept: Leverages the success of GIS + MILP optimization in emergency logistics, demonstrating clear operational viability.
+  Builds Public Trust: Explainable AI (SHAP) minimizes human bias, while transparent metrics provide credible proof for all evacuation orders.
+  Guarantees Accountability: Fosters transparency through detailed logs, shelter manifests, and analytics, ensuring every action is traceable.
+  Ensures Authority Engagement: Real-time GIS dashboards and one-click dispatch alerts keep disaster management teams actively in control.
+
+Shape 7 [Rounded Rectangle 9]:
+  BUSINESS POTENTIAL& GOVERNMENT SAVINGS
+  Government Cost Savings: Automates evacuation planning to significantly reduce relief logistics overheads and optimize the allocation of NDRF/SDRF personnel.
+  Resource Efficiency & Zero Wastage: Creates direct cost savings through seamless integration with district relief supply chains, eliminating duplicate food/water convoys and preventing secondary evacuations.
+
+Shape 8 [Oval 24]:
+  BharatBytes
+
+Shape 10 [Slide Number Placeholder 5]:
+  4
+
+Shape 11 [Footer Placeholder 6]:
+  @SIH Idea submission- Template
+
+=== SLIDE 5 ===
+Shape 1 [Title 1]:
+  IMPACT AND BENEFITS
+
+Shape 2 [Slide Number Placeholder 5]:
+  5
+
+Shape 3 [Footer Placeholder 6]:
+  @SIH Idea submission- Template
+
+Shape 4 [Oval 11]:
+  BharatBytes
+
+Shape 5 [TextBox 17409]:
+  FROM RISK MAP → TO ACTION
+
+Shape 6 [Oval 17]:
+  IMPACTS&BENEFITS
+
+Shape 7 [Oval 18]:
+  1
+
+Shape 8 [TextBox 19]:
+  Reduced Latency
+  Reduces evacuation decision time by 95% (72h to <2h), improving response mobility.
+
+Shape 9 [Oval 20]:
+  2
+
+Shape 10 [TextBox 21]:
+  Faster Response
+  Saves crucial emergency time by giving vulnerable habitations priority routing.
+
+Shape 11 [Oval 22]:
+  3
+
+Shape 12 [TextBox 23]:
+  Lower Relief Waste
+  Cuts relief material wastage, leading to lower costs and zero shelter stockouts.
+
+Shape 13 [Oval 24]:
+  4
+
+Shape 14 [TextBox 25]:
+  Emergency Alerts
+  Supports SDMA & district administration with real-time alerts for red zones & road cuts.
+
+Shape 15 [Oval 26]:
+  1
+
+Shape 16 [TextBox 27]:
+  Safety
+  Quicker emergency response, safer relocation, zero abandoned vulnerable citizens.
+
+Shape 17 [Oval 28]:
+  2
+
+Shape 18 [TextBox 29]:
+  Economic
+  Time optimization, relief cost savings, improved disaster logistics productivity.
+
+Shape 19 [Oval 30]:
+  3
+
+Shape 20 [TextBox 31]:
+  Environmental
+  Reduced post-disaster contamination, sustainable shelter carrying capacity.
+
+Shape 21 [Oval 32]:
+  4
+
+Shape 22 [TextBox 33]:
+  Technology
+  Smart automation, real-time monitoring, AI-driven disaster management.
+
+Shape 23 [TextBox 35]:
+  From Chaotic Evacuation ➔ Safe Relocation
+
+Shape 25 [Slide Number Placeholder 5]:
+  5
+
+Shape 26 [Footer Placeholder 6]:
+  @SIH Idea submission- Template
+
+=== SLIDE 6 ===
+Shape 1 [Title 1]:
+  RESEARCH & REFERENCES
+
+Shape 2 [Slide Number Placeholder 5]:
+  6
+
+Shape 3 [Footer Placeholder 6]:
+  @SIH Idea submission- Template
+
+Shape 4 [Oval 8]:
+  BharatBytes
+
+Shape 5 [TextBox 17409]:
+  KEY RESEARCH + DATA / TECHNOLOGY REFERENCES
+
+Shape 6 [Rounded Rectangle 7]:
+  ISRO NDEM
+  Satellite Multi-Hazard & DEM Data
+  LINK
+
+Shape 7 [Rounded Rectangle 8]:
+  NDMA SOPs
+  National Evacuation & Shelter Standards
+  LINK
+
+Shape 8 [Rounded Rectangle 9]:
+  Cutter (SoVI)
+  Social Vulnerability Index Modeling
+  LINK
+
+Shape 9 [Rounded Rectangle 10]:
+  Google OR-Tools
+  Capacity-Constrained Relocation Optimizer
+  LINK
+
+Shape 10 [Rounded Rectangle 11]:
+  ScienceDirect
+  GIS Multi-Hazard Zonation & MCDM
+  LINK
+
+Shape 11 [Rounded Rectangle 12]:
+  Lundberg (SHAP)
+  Explainable AI in Public Decisions
+  LINK
+
+Shape 12 [Rounded Rectangle 13]:
+  OpenStreetMap
+  Road Inundation & Accessibility
+  LINK
+
+Shape 13 [TextBox 15]:
+  UI/UX
+
+Shape 14 [TextBox 17]:
+  1. Dynamic Red-Zone Portal (Zone Heatmap & Risk Scores)
+
+Shape 15 [TextBox 19]:
+  2. Safe Shelter Carrying Capacity Matrix (Live Bed & Ration Tracking)
+
+Shape 16 [TextBox 21]:
+  3. Emergency SOS & SDMA Dispatch Console (One-Click Broadcast)
+
+Shape 18 [Slide Number Placeholder 5]:
+  6
+
+Shape 19 [Footer Placeholder 6]:
+  @SIH Idea submission- Template
+

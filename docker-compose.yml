@@ -1,0 +1,69 @@
+version: '3.8'
+
+services:
+  # 1. Spatial Database Layer (PostGIS 16)
+  spatial-db:
+    image: postgis/postgis:16-3.4-alpine
+    container_name: resqgrid-spatial-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: resqgrid_spatial
+      POSTGRES_USER: resqgrid
+      POSTGRES_PASSWORD: resqgrid_secure_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - resqgrid_spatial_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U resqgrid -d resqgrid_spatial"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - resqgrid_network
+
+  # 2. Decision Support Engine & Optimization Solver (FastAPI + PuLP CBC)
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: resqgrid-backend
+    restart: unless-stopped
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8000
+      - ENVIRONMENT=production
+      - DATABASE_URL=postgresql://resqgrid:resqgrid_secure_pass@spatial-db:5432/resqgrid_spatial
+      - SOLVER_BACKEND=pulp
+      - RBAC_ENABLED=true
+      - RATE_LIMIT_STANDARD_PER_MIN=120
+      - RATE_LIMIT_HEAVY_PER_MIN=30
+    ports:
+      - "8000:8000"
+    depends_on:
+      spatial-db:
+        condition: service_healthy
+    networks:
+      - resqgrid_network
+
+  # 3. Government-Grade Tactical Operations UI (Nginx + React)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: resqgrid-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - resqgrid_network
+
+networks:
+  resqgrid_network:
+    driver: bridge
+
+volumes:
+  resqgrid_spatial_data:
+    driver: local

@@ -278,26 +278,28 @@ export default function HabitationsRegister({ habitations, onSelectHabitation, o
                         <Eye size={12} />
                         <span>SHAP</span>
                       </button>
-                      <button
-                        onClick={() => onOpen3DInspector && onOpen3DInspector(h)}
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '4px',
-                          background: '#064e3b',
-                          border: '1px solid #10b981',
-                          color: '#a7f3d0',
-                          padding: '4px 8px',
-                          borderRadius: '4px',
-                          fontSize: '11px',
-                          fontWeight: '700',
-                          cursor: 'pointer'
-                        }}
-                        title="Inspect in 3D Digital Elevation & Inundation Model"
-                      >
-                        <Mountain size={12} />
-                        <span>3D DEM</span>
-                      </button>
+                      {onOpen3DInspector && (
+                        <button
+                          onClick={() => onOpen3DInspector(h)}
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            background: '#064e3b',
+                            border: '1px solid #10b981',
+                            color: '#a7f3d0',
+                            padding: '4px 8px',
+                            borderRadius: '4px',
+                            fontSize: '11px',
+                            fontWeight: '700',
+                            cursor: 'pointer'
+                          }}
+                          title="Inspect in 3D Digital Elevation & Inundation Model"
+                        >
+                          <Mountain size={12} />
+                          <span>3D DEM</span>
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>

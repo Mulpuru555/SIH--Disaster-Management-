@@ -363,5 +363,109 @@ class DataStore:
             )
         return roads
 
+    def load_from_database(self, session):
+        """Loads cached in-memory state from the persistent SQLAlchemy spatial database."""
+        from .db_models import HabitationORM, ShelterORM, ResettlementSiteORM, RoadEdgeORM
+        habs = session.query(HabitationORM).all()
+        if habs:
+            self.habitations = {h.id: h.to_pydantic() for h in habs}
+
+        shelters = session.query(ShelterORM).all()
+        if shelters:
+            self.shelters = {s.id: s.to_pydantic() for s in shelters}
+
+        sites = session.query(ResettlementSiteORM).all()
+        if sites:
+            self.resettlement_sites = {r.id: r.to_pydantic() for r in sites}
+
+        roads = session.query(RoadEdgeORM).all()
+        if roads:
+            self.roads = {r.id: r.to_pydantic() for r in roads}
+
+    def sync_road_to_db(self, session, road_id: str, is_blocked: bool, reason: str = None, inundation_depth: float = 0.0):
+        """Persists road blockage status into database and in-memory cache simultaneously."""
+        from .db_models import RoadEdgeORM
+        road_orm = session.query(RoadEdgeORM).filter(RoadEdgeORM.id == road_id).first()
+        if road_orm:
+            road_orm.is_blocked = is_blocked
+            road_orm.blockage_reason = reason
+            road_orm.inundation_depth_m = inundation_depth
+            session.commit()
+        if road_id in self.roads:
+            self.roads[road_id].is_blocked = is_blocked
+            self.roads[road_id].blockage_reason = reason
+            self.roads[road_id].inundation_depth_m = inundation_depth
+
+    def record_audit_log(self, session, event_type: str, actor_role: str = "NDRF_INCIDENT_COMMANDER", details: dict = None, ip_address: str = None):
+        """Records an immutable, cryptographically chained audit event in the database."""
+        from .db_models import AuditLogORM, compute_audit_hash, GENESIS_HASH
+        from datetime import datetime
+
+        if session is None:
+            return {
+                "id": 0,
+                "timestamp": datetime.utcnow().isoformat(),
+                "event_type": event_type,
+                "actor_role": actor_role,
+                "details": details or {},
+                "ip_address": ip_address,
+                "prev_hash": GENESIS_HASH,
+                "record_hash": "IN_MEMORY_SIMULATION"
+            }
+
+        # Query the latest record to link prev_hash
+        last_log = session.query(AuditLogORM).order_by(AuditLogORM.id.desc()).first()
+        prev_hash = last_log.record_hash if (last_log and last_log.record_hash) else GENESIS_HASH
+
+        now = datetime.utcnow()
+        log = AuditLogORM(
+            timestamp=now,
+            event_type=event_type,
+            actor_role=actor_role,
+            details=details or {},
+            ip_address=ip_address,
+            prev_hash=prev_hash,
+            record_hash="PENDING"
+        )
+        session.add(log)
+        session.flush()
+
+        # Compute tamper-evident SHA-256 hash
+        log.record_hash = compute_audit_hash(
+            id_val=log.id,
+            timestamp_iso=log.timestamp.isoformat(),
+            event_type=log.event_type,
+            actor_role=log.actor_role,
+            details=log.details,
+            ip_address=log.ip_address,
+            prev_hash=log.prev_hash
+        )
+        session.commit()
+        return log.to_dict()
+
+    def record_dispatch(self, session, convoy_data: dict, approved_by: str = "District Collector"):
+        """Persists an official evacuation convoy dispatch into the database."""
+        from .db_models import EvacuationDispatchORM
+        from datetime import datetime
+        dispatch = EvacuationDispatchORM(
+            convoy_id=convoy_data.get("convoy_id"),
+            origin_id=convoy_data.get("origin_id", ""),
+            origin_name=convoy_data.get("origin_habitation", ""),
+            destination_id=convoy_data.get("destination_id", ""),
+            destination_name=convoy_data.get("destination_shelter", ""),
+            evacuee_headcount=convoy_data.get("evacuee_headcount", 0),
+            distance_km=convoy_data.get("transit_distance_km", 0.0),
+            estimated_transit_mins=convoy_data.get("estimated_time_minutes", 0),
+            priority_level=convoy_data.get("priority", "P1_CRITICAL"),
+            recommended_convoy_type=convoy_data.get("fleet_composition", "50-Seater NDRF Buses"),
+            dispatch_status="APPROVED_BY_DISTRICT_MAGISTRATE",
+            approved_by=approved_by,
+            timestamp=datetime.utcnow()
+        )
+        session.add(dispatch)
+        session.commit()
+        return dispatch.to_dict()
+
 # Singleton instance for the backend
 db = DataStore()
+

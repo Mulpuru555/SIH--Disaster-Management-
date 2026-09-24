@@ -5,12 +5,13 @@ class ExplainabilityEngine:
     """
     Explainable AI (XAI) Module for District Magistrate & NDRF Decision Support
     Provides game-theoretic Shapley-inspired feature importance attributions
-    explaining WHY a habitation was designated as RED ZONE.
+    explaining WHY a habitation was designated as RED/ORANGE ZONE and
+    breaking down both physical landslide/flood drivers and demographic vulnerabilities.
     """
 
     @staticmethod
     def explain_habitation(h: Habitation, sim: SimulationPayload) -> XAIResponse:
-        # Base factor influences
+        # 1. Physical Hazard Feature Impacts
         slope_impact = max(0.0, (h.slope_degrees / 45.0) * 40.0)
         rain_impact = max(0.0, (sim.rainfall_mm_hr / 150.0) * 35.0)
         soil_impact = sim.soil_saturation * 15.0
@@ -19,21 +20,40 @@ class ExplainabilityEngine:
 
         total_impact = slope_impact + rain_impact + soil_impact + river_impact + history_impact + 1e-5
 
-        pct_slope = round((slope_impact / total_impact) * 100.0, 1)
-        pct_rain = round((rain_impact / total_impact) * 100.0, 1)
-        pct_soil = round((soil_impact / total_impact) * 100.0, 1)
-        pct_river = round((river_impact / total_impact) * 100.0, 1)
-        pct_history = round((history_impact / total_impact) * 100.0, 1)
-
         breakdown = {
-            "Slope Instability & DEM Gradient": pct_slope,
-            "Precipitation Intensity & Duration": pct_rain,
-            "Soil Moisture Saturation": pct_soil,
-            "River / Waterway Inundation Proximity": pct_river,
-            "20-Year Disaster Recurrence History": pct_history
+            "Slope Instability & DEM Gradient": round((slope_impact / total_impact) * 100.0, 1),
+            "Precipitation Intensity & Duration": round((rain_impact / total_impact) * 100.0, 1),
+            "Soil Moisture Saturation": round((soil_impact / total_impact) * 100.0, 1),
+            "River / Waterway Inundation Proximity": round((river_impact / total_impact) * 100.0, 1),
+            "20-Year Disaster Recurrence History": round((history_impact / total_impact) * 100.0, 1)
         }
 
-        # Plain language rationale for District Magistrate
+        # 2. Social Vulnerability Index (SoVI) Demographic Breakdown
+        pop = max(1, h.population)
+        elderly_impact = (h.elderly_count / pop) * 35.0
+        infant_impact = (h.infant_count / pop) * 25.0
+        pwd_impact = (h.pwd_count / pop) * 30.0
+        kutcha_impact = (h.kutcha_houses / max(1, h.kutcha_houses + 50)) * 10.0
+        total_demo = elderly_impact + infant_impact + pwd_impact + kutcha_impact + 1e-5
+
+        social_breakdown = {
+            "Geriatric / Elderly Dependency": round((elderly_impact / total_demo) * 100.0, 1),
+            "Pediatric / Infant Vulnerability": round((infant_impact / total_demo) * 100.0, 1),
+            "Persons with Disabilities (PwD) Mobility Limitation": round((pwd_impact / total_demo) * 100.0, 1),
+            "Kutcha / Structural Fragility": round((kutcha_impact / total_demo) * 100.0, 1)
+        }
+
+        demographic_score = round(min(1.0, (h.elderly_count * 2.5 + h.infant_count * 2.0 + h.pwd_count * 3.5 + h.kutcha_houses * 0.8) / pop), 2)
+
+        # 3. Wave Prioritization Recommendation
+        if h.zone == "RED" or h.hazard_score >= 70.0 or demographic_score >= 0.35:
+            evac_wave = "Wave 1: Immediate Critical Evacuation (0-2 Hours)"
+        elif h.zone == "ORANGE" or h.hazard_score >= 40.0 or demographic_score >= 0.20:
+            evac_wave = "Wave 2: High Priority Evacuation (2-6 Hours)"
+        else:
+            evac_wave = "Wave 3: Standard Precautionary Evacuation (6-12 Hours)"
+
+        # 4. Plain language rationale for District Magistrate & DEOC
         reasons = []
         if h.slope_degrees >= 30.0:
             reasons.append(f"Steep hillside slope of {h.slope_degrees}° exceeds the critical threshold of 28° (Factor of Safety: {h.factor_of_safety}).")
@@ -47,15 +67,19 @@ class ExplainabilityEngine:
         if not reasons:
             reasons.append("Habitation currently exhibits stable geological and hydrologic parameters.")
 
+        reasons.append(
+            f"Demographic vulnerability score is {demographic_score} ({'Critical' if demographic_score >= 0.35 else 'Elevated' if demographic_score >= 0.20 else 'Low'}), with {h.elderly_count} senior citizens, {h.infant_count} infants, and {h.pwd_count} PwD residents requiring priority dispatch."
+        )
+
         rationale = " ".join(reasons)
 
-        # Actionable recommendation
+        # 5. Actionable recommendation
         if h.zone == "RED":
-            rec = f"MANDATORY IMMEDIATE EVACUATION ORDER (Section 34, Disaster Management Act 2005). Dispatch NDRF/SDRF convoys to prioritize {h.elderly_count} elderly, {h.infant_count} infants, and {h.pwd_count} PwD residents."
+            rec = f"MANDATORY IMMEDIATE EVACUATION ORDER (Section 34, Disaster Management Act 2005). Dispatch NDRF/SDRF convoys to prioritize {h.elderly_count} elderly, {h.infant_count} infants, and {h.pwd_count} PwD residents under {evac_wave}."
         elif h.zone == "ORANGE":
-            rec = "PRE-EVACUATION STANDBY. Issue early warning sirens via Aapda Mitra; stage buses at designated assembly points."
+            rec = f"PRE-EVACUATION STANDBY. Issue early warning sirens via Aapda Mitra; stage 4x4 buses at designated assembly points for {evac_wave}."
         else:
-            rec = "IN-SITU MONITORING. Routine meteorological tracking active."
+            rec = f"IN-SITU MONITORING. Routine meteorological tracking active under {evac_wave}."
 
         return XAIResponse(
             habitation_id=h.id,
@@ -64,5 +88,8 @@ class ExplainabilityEngine:
             hazard_score=h.hazard_score,
             factor_breakdown_percentages=breakdown,
             plain_language_rationale=rationale,
-            mitigation_recommendation=rec
+            mitigation_recommendation=rec,
+            demographic_vulnerability_score=demographic_score,
+            social_vulnerability_breakdown=social_breakdown,
+            evacuation_wave_recommendation=evac_wave
         )

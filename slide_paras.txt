@@ -1,0 +1,70 @@
+*** ppt/slides/slide1.xml ***
+P1: TITLE PAGE
+P2: SMART INDIA HACKATHON 2026
+P3: Problem Statement ID – SIH26191
+P4: Problem Statement Title- Intelligent Identification of Hazard-Based Red Zones, Carrying Capacity Assessment, and Immediate Relocation Needs for Vulnerable Habitations
+P5: Theme- Disaster Management
+P6: PS Category- Software
+P7: Team ID- Team 16
+P8: Team Name - BharatBytes
+*** ppt/slides/slide2.xml ***
+P0: 2
+P1: @SIH Idea submission- Template
+P2: ResQGrid: AI-Powered Proactive Relocation IntelligenceRevolutionizing India's Disaster Resilience
+P3: Real-world issue: Flash floods, landslides (Wayanad, Himachal), and unplanned evacuations cause massive casualties, shelter bottlenecks, and severe resource wastage.
+P4: Why important: India loses ₹80,000+ crores annually to climate disasters; 30M+ people displaced in a decade. 85% of evacuation failures stem from blind shelter allocation & road cutoffs.
+P5: Solution: GeoAI system identifies dynamic red zones, models shelter carrying capacity, and optimizes preemptive relocation for vulnerable citizens.
+P6: Prototype
+P7: Video  |  Website  |  GitHub
+P8: CORE INNOVATIONGeoAI Relocation Decision Engine
+P9: PRIMARY FUNCTIONSMULTI-HAZARD RED-ZONING  |  CAPACITY-CONSTRAINED ROUTING
+P10: SAFETY & VULNERABILITY COMPLIANCE
+P19: SoVI Vulnerability Index
+P20: Prioritizes elderly, disabled, infants & kuccha houses
+P21: Road Severance AI
+P22: Detects submerged roads & landslides, routes convoys safely
+P23: Emergency Dispatch
+P24: One-click alert broadcast to SDMA, NDRF & Aapda Mitra
+P25: MONITORING & CAPACITY SUPPORT
+P35: Carrying Capacity
+P36: Live tracking of beds, water, food & sanitation limits
+P37: What-If Simulation
+P38: Simulates dam burst & rainfall escalation scenarios
+P39: Explainable AI (XAI)
+P40: SHAP transparency for District Magistrate approvals
+P41: Risk  v  Solution
+P42: Chaotic Relocation
+P43: ➔
+P44: Capacity-Aware Relocation
+P45: Shelter Overcrowding
+P46: ➔
+P47: Dynamic Carrying Capacity
+P48: Black-Box AI Distrust
+P49: ➔
+P50: Explainable AI (SHAP Metrics)
+P51: ⚡ EXAMPLE DECISION PIPELINE
+P52: • Village A: Critical Risk (1,200 people)• Shelter B: Capacity 2,500 | Available 1,800• Action: RELOCATE 1,200 (Priority: IMMEDIATE)• Route: State Hwy 4 (Clear of Inundation)
+P53: BharatBytes
+P55: @SIH Idea submission- Template
+P56: 2
+*** ppt/slides/slide4.xml ***
+P0: FEASIBILITY AND VIABILITY
+P1: 4
+P2: @SIH Idea submission- Template
+P3: CAN IT BE BUILT, VALIDATED AND DEPLOYED?
+P4: FEASIBILITY ANALYSIS⭐⭐⭐⭐½
+P5: Infrastructure Reusability: Leverages existing state GIS portals and open satellite feeds, requiring minimal hardware installation.
+P6: Scalable Deployment: Can be implemented in high-risk pilot districts (e.g. Wayanad, Mandi) and expanded nationwide as needed.
+P7: Cost-Effectiveness: Setup cost is near-zero compared to building physical infrastructure or post-disaster rebuilding.
+P8: Authority Integration: Includes features like SOS alerts, shelter capacity telemetry, and DM manual override for disaster control.
+P9: VIABILITY✔ Proven & Transparent
+P10: Proven Concept: Leverages the success of GIS + MILP optimization in emergency logistics, demonstrating clear operational viability.
+P11: Builds Public Trust: Explainable AI (SHAP) minimizes human bias, while transparent metrics provide credible proof for all evacuation orders.
+P12: Guarantees Accountability: Fosters transparency through detailed logs, shelter manifests, and analytics, ensuring every action is traceable.
+P13: Ensures Authority Engagement: Real-time GIS dashboards and one-click dispatch alerts keep disaster management teams actively in control.
+P14: BUSINESS POTENTIAL& GOVERNMENT SAVINGS
+P15: Government Cost Savings: Automates evacuation planning to significantly reduce relief logistics overheads and optimize the allocation of NDRF/SDRF personnel.
+P16: Resource Efficiency & Zero Wastage: Creates direct cost savings through seamless integration with district relief supply chains, eliminating duplicate food/water convoys and preventing secondary evacuations.
+P17: BharatBytes
+P19: 4
+P20: @SIH Idea submission- Template

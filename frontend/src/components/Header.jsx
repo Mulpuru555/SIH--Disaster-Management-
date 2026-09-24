@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Shield, FileText, Clock, Map, ListFilter, Home, Compass } from 'lucide-react';
+import { Shield, ShieldCheck, FileText, Clock, Map, ListFilter, Home, Compass, Bot, Activity, Layers } from 'lucide-react';
 
-export default function Header({ activeTab, onTabChange, onOpenManifest, horizon, onHorizonChange }) {
+export default function Header({ 
+  activeTab, onTabChange, onOpenManifest, horizon, onHorizonChange,
+  onOpenAIAssistant, onOpenTelemetry, onOpenGISUpload, onOpenAudit 
+}) {
   const [timeStr, setTimeStr] = useState('');
 
   useEffect(() => {
@@ -88,6 +91,70 @@ export default function Header({ activeTab, onTabChange, onOpenManifest, horizon
           </div>
 
           <button
+            onClick={onOpenAIAssistant}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              fontSize: '12px',
+              fontWeight: '700',
+              background: 'linear-gradient(135deg, #065f46, #047857)',
+              color: '#ffffff',
+              border: '1px solid #10b981',
+              padding: '7px 13px',
+              borderRadius: '5px',
+              cursor: 'pointer',
+              boxShadow: '0 2px 8px rgba(16, 185, 129, 0.25)',
+              transition: 'all 0.2s'
+            }}
+          >
+            <Bot size={15} color="#6ee7b7" />
+            <span>NDRF AI Assistant</span>
+          </button>
+
+          <button
+            onClick={onOpenTelemetry}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              fontSize: '12px',
+              fontWeight: '600',
+              background: '#0d2847',
+              color: '#38bdf8',
+              border: '1px solid #1e40af',
+              padding: '7px 12px',
+              borderRadius: '5px',
+              cursor: 'pointer',
+              transition: 'all 0.2s'
+            }}
+          >
+            <Activity size={14} color="#38bdf8" />
+            <span>CWC / IMD Telemetry</span>
+          </button>
+
+          <button
+            onClick={onOpenGISUpload}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              fontSize: '12px',
+              fontWeight: '600',
+              background: '#0d2847',
+              color: '#fbbf24',
+              border: '1px solid #d97706',
+              padding: '7px 12px',
+              borderRadius: '5px',
+              cursor: 'pointer',
+              transition: 'all 0.2s'
+            }}
+          >
+            <Layers size={14} color="#f59e0b" />
+            <span>Upload GIS Layer</span>
+          </button>
+
+          <button
             onClick={onOpenManifest}
             style={{
               display: 'flex',
@@ -98,7 +165,7 @@ export default function Header({ activeTab, onTabChange, onOpenManifest, horizon
               background: 'linear-gradient(135deg, #1e3a5f, #1e40af)',
               color: '#ffffff',
               border: '1px solid #3b82f6',
-              padding: '7px 15px',
+              padding: '7px 14px',
               borderRadius: '5px',
               cursor: 'pointer',
               boxShadow: '0 2px 8px rgba(37, 99, 235, 0.3)',
@@ -106,7 +173,29 @@ export default function Header({ activeTab, onTabChange, onOpenManifest, horizon
             }}
           >
             <FileText size={15} color="#38bdf8" />
-            <span>NDRF Official Order</span>
+            <span>NDRF OP-ORD</span>
+          </button>
+
+          <button
+            onClick={onOpenAudit}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              fontSize: '12px',
+              fontWeight: '700',
+              background: 'linear-gradient(135deg, #0c4a6e, #0369a1)',
+              color: '#ffffff',
+              border: '1px solid #38bdf8',
+              padding: '7px 13px',
+              borderRadius: '5px',
+              cursor: 'pointer',
+              boxShadow: '0 2px 8px rgba(56, 189, 248, 0.25)',
+              transition: 'all 0.2s'
+            }}
+          >
+            <ShieldCheck size={15} color="#38bdf8" />
+            <span>Audit & Governance</span>
           </button>
         </div>
       </div>
@@ -125,8 +214,7 @@ export default function Header({ activeTab, onTabChange, onOpenManifest, horizon
           {[
             { id: 'gis', label: 'Integrated GIS Command', icon: Map },
             { id: 'habitations', label: 'Habitations Risk Register', icon: ListFilter },
-            { id: 'shelters', label: 'Relief Camps & Capacity Matrix', icon: Home },
-            { id: 'resettlement', label: 'Permanent Resettlement Townships', icon: Compass }
+            { id: 'shelters', label: 'Relief Camps & Capacity Matrix', icon: Home }
           ].map(tab => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
