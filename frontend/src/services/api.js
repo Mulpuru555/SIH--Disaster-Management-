@@ -158,35 +158,9 @@ export async function fetchCWCGauges() {
     const res = await fetch(`${BACKEND_URL}/api/ingest/cwc-gauge/latest`);
     if (res.ok) return await res.json();
   } catch (e) {
-    console.warn('Fetch CWC gauges error:', e);
+    console.warn('CWC gauge API unavailable:', e);
   }
-  // Default Wayanad CWC baseline
-  return [
-    {
-      station_id: "CWC-KABINI-01",
-      station_name: "Muthanga Kabini River Basin Gauge",
-      river_basin: "Kabini River Basin",
-      current_water_level_m: 642.80,
-      warning_level_m: 643.50,
-      danger_level_m: 644.20,
-      high_flood_level_m: 645.10,
-      discharge_cusecs: 18000.0,
-      trend: "RISING",
-      flood_status: "NORMAL"
-    },
-    {
-      station_id: "CWC-CHALIYAR-02",
-      station_name: "Nilambur / Chaliyar Confluence Gauge",
-      river_basin: "Chaliyar River Basin",
-      current_water_level_m: 38.40,
-      warning_level_m: 39.50,
-      danger_level_m: 40.20,
-      high_flood_level_m: 41.50,
-      discharge_cusecs: 22000.0,
-      trend: "RISING",
-      flood_status: "NORMAL"
-    }
-  ];
+  return [];
 }
 
 export async function fetchIMDRainfall() {
@@ -194,26 +168,9 @@ export async function fetchIMDRainfall() {
     const res = await fetch(`${BACKEND_URL}/api/ingest/imd-rainfall/latest`);
     if (res.ok) return await res.json();
   } catch (e) {
-    console.warn('Fetch IMD rainfall error:', e);
+    console.warn('IMD rainfall API unavailable:', e);
   }
-  return [
-    {
-      station_id: "IMD-MEPPADI-AWS",
-      station_name: "Meppadi Automated Weather Station",
-      rainfall_last_hour_mm: 95.0,
-      rainfall_cumulative_24h_mm: 260.4,
-      alert_level: "RED",
-      forecast_nowcast_text: "Extremely heavy precipitation ongoing. Severe risk of slope failure along Meppadi-Chooralmala ridge."
-    },
-    {
-      station_id: "IMD-VYTHIRI-AWS",
-      station_name: "Vythiri Ridge Weather Station",
-      rainfall_last_hour_mm: 62.0,
-      rainfall_cumulative_24h_mm: 175.0,
-      alert_level: "ORANGE",
-      forecast_nowcast_text: "Intense rainfall spell expected to persist over the next 3 hours."
-    }
-  ];
+  return [];
 }
 
 export async function uploadHazardGeoJSON(payload) {

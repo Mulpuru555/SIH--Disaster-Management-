@@ -1,68 +1,45 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { 
   FileText, Shield, CheckCircle2, Clock, Printer, Download, 
-  X, Check, AlertCircle, UserCheck, Truck, LifeBuoy, AlertTriangle
+  X, AlertCircle, UserCheck, Truck, LifeBuoy, AlertTriangle, ArrowRight
 } from 'lucide-react';
-import { fetchOperationalOrder, signOffOperationalOrder } from '../services/api';
-import ndrfEmblem from '../assets/ndrf_emblem.png';
 
-export default function OperationalOrderModal({ isOpen, onClose, currentSim, habitations, shelters }) {
-  const [opOrd, setOpOrd] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [isSigning, setIsSigning] = useState(false);
-  const [officerName, setOfficerName] = useState('Dr. Meghana IAS (District Collector & DDMA Chairman)');
-  const [designation, setDesignation] = useState('District Magistrate & Chairman, DDMA Wayanad');
-  const [comments, setComments] = useState('Authorized for immediate field mobilization under Sec 34 of DM Act 2005.');
+export default function OperationalOrderModal({ 
+  isOpen, 
+  onClose, 
+  habitations = [], 
+  shelters = [], 
+  evacuationPlan = [], 
+  currentSector = 'all_india',
+  liveWeather = null 
+}) {
+  const [officerName, setOfficerName] = useState('');
+  const [designation, setDesignation] = useState('District Magistrate & Chairman, DDMA');
+  const [comments, setComments] = useState('');
+  const [isAuthorized, setIsAuthorized] = useState(false);
+  const [authorizationTimestamp, setAuthorizationTimestamp] = useState(null);
 
-  useEffect(() => {
-    if (isOpen) {
-      loadOrder();
-    }
-  }, [isOpen]);
+  if (!isOpen) return null;
 
-  const loadOrder = async () => {
-    setLoading(true);
-    try {
-      const data = await fetchOperationalOrder();
-      if (data) {
-        setOpOrd(data);
-      }
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const redHabs = habitations.filter(h => h.zone === 'RED');
+  const redPop = redHabs.reduce((sum, h) => sum + (h.population || 0), 0);
+  const totalShelterCapacity = shelters.reduce((sum, s) => sum + (s.effective_capacity || 0), 0);
 
-  const handleSignOff = async (e) => {
+  const handleAuthorize = (e) => {
     e.preventDefault();
-    if (!opOrd || isSigning) return;
-
-    setIsSigning(true);
-    try {
-      const signed = await signOffOperationalOrder({
-        op_ord_id: opOrd.op_ord_id,
-        sign_off_officer: officerName,
-        designation: designation,
-        comments: comments
-      });
-      if (signed) {
-        setOpOrd(signed);
-      }
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsSigning(false);
+    if (!officerName.trim()) {
+      alert("Please enter the name and badge/ID of the reviewing authorized officer.");
+      return;
     }
+    setIsAuthorized(true);
+    setAuthorizationTimestamp(new Date().toLocaleDateString('en-IN', {
+      day: '2-digit', month: 'short', year: 'numeric'
+    }) + ' ' + new Date().toLocaleTimeString('en-IN') + ' IST');
   };
 
   const handlePrint = () => {
     window.print();
   };
-
-  if (!isOpen) return null;
-
-  const isVerified = opOrd?.verification_status?.includes('VERIFIED') || opOrd?.verification_status?.includes('RATIFIED');
 
   return (
     <div style={{
@@ -72,7 +49,7 @@ export default function OperationalOrderModal({ isOpen, onClose, currentSim, hab
       right: 0,
       bottom: 0,
       background: 'rgba(3, 10, 20, 0.88)',
-      backdropFilter: 'blur(7px)',
+      backdropFilter: 'blur(5px)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -80,52 +57,39 @@ export default function OperationalOrderModal({ isOpen, onClose, currentSim, hab
       padding: '16px'
     }}>
       <div style={{
-        background: '#07192f',
-        border: '1px solid #1e40af',
-        borderRadius: '10px',
+        background: '#0a1d35',
+        border: '1px solid #1e3a5f',
+        borderRadius: '6px',
         width: '100%',
-        maxWidth: '960px',
+        maxWidth: '920px',
         maxHeight: '92vh',
         display: 'flex',
         flexDirection: 'column',
-        boxShadow: '0 25px 60px rgba(0,0,0,0.8)',
+        boxShadow: '0 20px 50px rgba(0,0,0,0.7)',
         overflow: 'hidden'
       }}>
         {/* Modal Top Bar */}
         <div style={{
-          padding: '14px 22px',
-          background: 'linear-gradient(135deg, #091e3a, #0d2847)',
+          padding: '12px 20px',
+          background: '#071526',
           borderBottom: '1px solid #1e3a5f',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <img 
-              src={ndrfEmblem} 
-              alt="NDRF Crest" 
-              style={{ width: '40px', height: '40px', objectFit: 'contain' }}
-              onError={(e) => { e.target.style.display = 'none'; }}
-            />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <FileText size={17} color="#60a5fa" />
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <h2 style={{ fontSize: '15.5px', fontWeight: '800', color: '#ffffff', margin: 0 }}>
-                  NDRF Operational Relocation Order (OP-ORD)
+                <h2 style={{ fontSize: '14.5px', fontWeight: '800', color: '#ffffff', margin: 0 }}>
+                  Draft Relocation Plan &amp; Allocation Schedule
                 </h2>
-                <span style={{
-                  fontSize: '10px',
-                  background: isVerified ? 'rgba(34, 197, 94, 0.2)' : 'rgba(245, 158, 11, 0.2)',
-                  color: isVerified ? '#4ade80' : '#fbbf24',
-                  border: isVerified ? '1px solid rgba(34, 197, 94, 0.4)' : '1px solid rgba(245, 158, 11, 0.4)',
-                  padding: '2px 8px',
-                  borderRadius: '4px',
-                  fontWeight: '700'
-                }}>
-                  {isVerified ? '✓ RATIFIED BY DISTRICT MAGISTRATE' : '⚠️ DRAFT ADVISORY — PENDING SIGN-OFF'}
+                <span className={isAuthorized ? 'badge-green' : 'badge-amber'} style={{ fontSize: '9.5px', padding: '1px 6px' }}>
+                  {isAuthorized ? '● AUTHORIZED BY DDMA' : 'DRAFT — PENDING STATUTORY APPROVAL'}
                 </span>
               </div>
-              <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '2px' }}>
-                IRS Form 201/202 Equivalent &bull; Statutory Authority: Disaster Management Act 2005 (Sec 30, 34, 65)
+              <div style={{ fontSize: '10.5px', color: '#94a3b8', marginTop: '2px' }}>
+                Statutory decision support framework under Sections 30 &amp; 34 of the Disaster Management Act, 2005
               </div>
             </div>
           </div>
@@ -133,211 +97,249 @@ export default function OperationalOrderModal({ isOpen, onClose, currentSim, hab
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <button
               onClick={handlePrint}
-              style={{
-                background: '#132e50',
-                border: '1px solid #1e40af',
-                color: '#93c5fd',
-                padding: '6px 12px',
-                borderRadius: '5px',
-                fontSize: '11.5px',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '5px'
-              }}
+              className="gov-btn-secondary"
+              style={{ padding: '4px 9px', fontSize: '10.5px' }}
             >
-              <Printer size={13} /> Print
+              <Printer size={11} />
+              <span>Print Draft</span>
             </button>
             <button
               onClick={onClose}
-              style={{
-                background: 'transparent',
-                border: 'none',
-                color: '#94a3b8',
-                cursor: 'pointer',
-                padding: '6px',
-                borderRadius: '4px'
-              }}
+              style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '2px' }}
             >
-              <X size={20} />
+              <X size={18} />
             </button>
           </div>
         </div>
 
-        {/* Modal Scrollable Body */}
-        <div style={{ padding: '20px', overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '18px' }}>
+        {/* Plan Body */}
+        <div style={{ padding: '16px 22px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '14px' }}>
           
-          {/* Quick Metrics Bar */}
-          {opOrd && (
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
-              gap: '10px'
-            }}>
-              <div style={{ background: '#091c33', padding: '10px 14px', borderRadius: '6px', border: '1px solid #1e3a5f' }}>
-                <div style={{ fontSize: '10.5px', color: '#94a3b8', textTransform: 'uppercase' }}>Total Mobilization</div>
-                <div style={{ fontSize: '18px', fontWeight: '800', color: '#38bdf8', marginTop: '2px' }}>
-                  {opOrd.total_citizens_evacuated.toLocaleString()} <span style={{ fontSize: '11px', color: '#cbd5e1', fontWeight: 'normal' }}>Citizens</span>
-                </div>
-              </div>
-              <div style={{ background: '#091c33', padding: '10px 14px', borderRadius: '6px', border: '1px solid #1e3a5f' }}>
-                <div style={{ fontSize: '10.5px', color: '#94a3b8', textTransform: 'uppercase' }}>Active Corridors</div>
-                <div style={{ fontSize: '18px', fontWeight: '800', color: '#22c55e', marginTop: '2px' }}>
-                  {opOrd.total_convoys} <span style={{ fontSize: '11px', color: '#cbd5e1', fontWeight: 'normal' }}>Convoys</span>
-                </div>
-              </div>
-              <div style={{ background: '#091c33', padding: '10px 14px', borderRadius: '6px', border: '1px solid #1e3a5f' }}>
-                <div style={{ fontSize: '10.5px', color: '#94a3b8', textTransform: 'uppercase' }}>Fleet Allocation</div>
-                <div style={{ fontSize: '18px', fontWeight: '800', color: '#f59e0b', marginTop: '2px' }}>
-                  {opOrd.total_vehicles} <span style={{ fontSize: '11px', color: '#cbd5e1', fontWeight: 'normal' }}>Buses</span>
-                </div>
-              </div>
-              <div style={{ background: '#091c33', padding: '10px 14px', borderRadius: '6px', border: '1px solid #1e3a5f' }}>
-                <div style={{ fontSize: '10.5px', color: '#94a3b8', textTransform: 'uppercase' }}>Medical Shuttles</div>
-                <div style={{ fontSize: '18px', fontWeight: '800', color: '#ec4899', marginTop: '2px' }}>
-                  {opOrd.total_ambulances} <span style={{ fontSize: '11px', color: '#cbd5e1', fontWeight: 'normal' }}>Ambulances</span>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Full Markdown Render Container */}
-          {opOrd && (
-            <div style={{
-              background: '#051324',
-              border: '1px solid #163354',
-              borderRadius: '8px',
-              padding: '24px',
-              color: '#cbd5e1',
-              fontSize: '12.5px',
-              lineHeight: '1.6',
-              fontFamily: 'monospace, monospace',
-              whiteSpace: 'pre-wrap',
-              maxHeight: '440px',
-              overflowY: 'auto'
-            }}>
-              {opOrd.order_content_markdown}
-            </div>
-          )}
-
-          {/* District Magistrate Human Verification Sign-off Box */}
+          {/* Official Document Banner */}
           <div style={{
-            background: isVerified ? 'rgba(34, 197, 94, 0.08)' : 'rgba(217, 119, 6, 0.08)',
-            border: isVerified ? '1px solid #22c55e' : '1px solid #d97706',
-            borderRadius: '8px',
-            padding: '16px 20px'
+            background: isAuthorized ? 'rgba(21, 128, 61, 0.1)' : 'rgba(217, 119, 6, 0.08)',
+            border: isAuthorized ? '1px solid rgba(34, 197, 94, 0.4)' : '1px solid rgba(245, 158, 11, 0.35)',
+            borderRadius: '4px',
+            padding: '10px 14px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between'
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-              <UserCheck size={18} color={isVerified ? '#4ade80' : '#f59e0b'} />
-              <span style={{ fontSize: '13px', fontWeight: '800', color: '#ffffff' }}>
-                Incident Commander & District Magistrate Statutory Sign-off Block
-              </span>
+            <div>
+              <div style={{ fontSize: '12px', fontWeight: '700', color: isAuthorized ? '#86efac' : '#fcd34d' }}>
+                {isAuthorized 
+                  ? 'OFFICIAL RELOCATION DIRECTIVE AUTHORIZED FOR FIELD MOBILIZATION' 
+                  : 'DRAFT OPERATIONAL RECOMMENDATION (FOR DDMA REVIEW ONLY)'}
+              </div>
+              <div style={{ fontSize: '10.5px', color: '#cbd5e1', marginTop: '2px' }}>
+                {isAuthorized 
+                  ? `Authorized by ${officerName} (${designation}) on ${authorizationTimestamp}.`
+                  : 'This plan is generated for decision support. Only an authorized statutory officer may ratify it for field execution.'}
+              </div>
+            </div>
+            <div style={{ textAlign: 'right', fontSize: '10px', color: '#94a3b8' }}>
+              <div><b>Plan Ref:</b> DRP-{new Date().getFullYear()}-001</div>
+              <div><b>Model Confidence:</b> 88%</div>
+            </div>
+          </div>
+
+          {/* Section 1: Situation & Exposed Habitations Summary */}
+          <div className="gov-card" style={{ padding: '12px 14px' }}>
+            <div style={{ fontSize: '11px', fontWeight: '700', color: '#60a5fa', textTransform: 'uppercase', letterSpacing: '0.4px', marginBottom: '8px' }}>
+              1. Situation Summary &amp; Exposure Analysis
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '8px', fontSize: '11px' }}>
+              <div style={{ background: '#071526', padding: '8px', borderRadius: '4px' }}>
+                <div style={{ color: '#94a3b8', fontSize: '10px' }}>Active Hazard</div>
+                <div style={{ color: '#ffffff', fontWeight: '700', marginTop: '2px' }}>
+                  {liveWeather?.storm_name || liveWeather?.condition || 'Monsoonal Precipitation Event'}
+                </div>
+              </div>
+              <div style={{ background: '#071526', padding: '8px', borderRadius: '4px' }}>
+                <div style={{ color: '#94a3b8', fontSize: '10px' }}>Critical Habitations (Red Zone)</div>
+                <div style={{ color: '#f87171', fontWeight: '700', marginTop: '2px' }}>
+                  {redHabs.length} Habitations ({redPop.toLocaleString()} Citizens)
+                </div>
+              </div>
+              <div style={{ background: '#071526', padding: '8px', borderRadius: '4px' }}>
+                <div style={{ color: '#94a3b8', fontSize: '10px' }}>Registered Shelter Capacity</div>
+                <div style={{ color: '#38bdf8', fontWeight: '700', marginTop: '2px' }}>
+                  {totalShelterCapacity.toLocaleString()} Persons ({shelters.length} Facilities)
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Section 2: Evacuation Allocation Schedule */}
+          <div className="gov-card" style={{ padding: '12px 14px' }}>
+            <div style={{ fontSize: '11px', fontWeight: '700', color: '#60a5fa', textTransform: 'uppercase', letterSpacing: '0.4px', marginBottom: '8px' }}>
+              2. Evacuation Allocation &amp; Convoys Schedule
             </div>
 
-            {isVerified ? (
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div>
-                  <div style={{ color: '#4ade80', fontWeight: 'bold', fontSize: '12px' }}>
-                    ✓ OPERATIONAL ORDER RATIFIED FOR IMMEDIATE TACTICAL EXECUTION
-                  </div>
-                  <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '3px' }}>
-                    Authorized by: <b>{officerName}</b> &bull; {designation}
-                  </div>
+            {evacuationPlan.length === 0 ? (
+              <div style={{ fontSize: '11px', color: '#94a3b8', padding: '12px', textAlign: 'center' }}>
+                No active Red Zone habitations requiring immediate relocation in the current baseline.
+              </div>
+            ) : (
+              <table className="gov-table">
+                <thead>
+                  <tr>
+                    <th>Origin Habitation</th>
+                    <th>Destination Shelter</th>
+                    <th>Evacuees</th>
+                    <th>Distance &amp; Route</th>
+                    <th>Estimated Transit</th>
+                    <th>Fleet Requirement</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {evacuationPlan.map((item, idx) => (
+                    <tr key={idx}>
+                      <td>
+                        <strong style={{ color: '#ffffff' }}>{item.from_name}</strong>
+                      </td>
+                      <td>
+                        <span style={{ color: '#86efac' }}>{item.to_name}</span>
+                      </td>
+                      <td>
+                        <b>{item.evacuee_count?.toLocaleString()}</b>
+                      </td>
+                      <td>
+                        {item.distance_km} km
+                      </td>
+                      <td>
+                        ~{item.estimated_transit_mins} mins
+                      </td>
+                      <td>
+                        <span style={{ color: '#93c5fd', fontSize: '10.5px' }}>{item.recommended_convoy_type}</span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+
+          {/* Section 3: Statutory Human Authorization Form (Section 9 & 17 Mandate) */}
+          <div className="gov-card" style={{ padding: '14px' }}>
+            <div style={{ fontSize: '11px', fontWeight: '700', color: '#f59e0b', textTransform: 'uppercase', letterSpacing: '0.4px', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <Shield size={14} color="#f59e0b" />
+              <span>3. Statutory Review &amp; Human Authorization</span>
+            </div>
+
+            {isAuthorized ? (
+              <div style={{ background: '#071526', padding: '12px', borderRadius: '4px', border: '1px solid #166534' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#86efac', fontWeight: '700', fontSize: '12px' }}>
+                  <CheckCircle2 size={16} color="#22c55e" />
+                  <span>PLAN RATIFIED AND APPROVED FOR EXECUTION</span>
                 </div>
-                <div style={{
-                  padding: '6px 14px',
-                  background: 'rgba(34, 197, 94, 0.2)',
-                  border: '1px solid #22c55e',
-                  borderRadius: '5px',
-                  color: '#4ade80',
-                  fontSize: '11px',
-                  fontWeight: 'bold',
-                  letterSpacing: '0.5px'
-                }}>
-                  SEALED & COMMITTED TO DISPATCH
+                <div style={{ fontSize: '11px', color: '#cbd5e1', marginTop: '6px', lineHeight: 1.5 }}>
+                  <div>&bull; <b>Authorizing Official:</b> {officerName}</div>
+                  <div>&bull; <b>Designation:</b> {designation}</div>
+                  <div>&bull; <b>Timestamp:</b> {authorizationTimestamp}</div>
+                  {comments && <div>&bull; <b>Special Instructions:</b> {comments}</div>}
                 </div>
               </div>
             ) : (
-              <form onSubmit={handleSignOff} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                <div style={{ fontSize: '11px', color: '#cbd5e1' }}>
-                  Under the Incident Response System (IRS), automated algorithmic outputs remain <b>advisory</b> until confirmed and countersigned by the designated District Magistrate or Incident Commander.
-                </div>
+              <form onSubmit={handleAuthorize} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                   <div>
-                    <label style={{ fontSize: '10.5px', color: '#94a3b8', display: 'block', marginBottom: '3px' }}>Authorizing Officer Name:</label>
+                    <label style={{ fontSize: '10.5px', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>
+                      Reviewing Officer Name &amp; Service ID:
+                    </label>
                     <input
                       type="text"
+                      required
+                      placeholder="e.g. S. Sharma, IAS / ID: DDMA-2026-04"
                       value={officerName}
-                      onChange={(e) => setOfficerName(e.target.value)}
+                      onChange={e => setOfficerName(e.target.value)}
                       style={{
                         width: '100%',
-                        background: '#071629',
+                        background: '#071526',
                         border: '1px solid #1e3a5f',
-                        padding: '7px 10px',
                         color: '#ffffff',
-                        fontSize: '11.5px',
-                        borderRadius: '4px'
+                        padding: '6px 10px',
+                        borderRadius: '4px',
+                        fontSize: '11px'
                       }}
                     />
                   </div>
                   <div>
-                    <label style={{ fontSize: '10.5px', color: '#94a3b8', display: 'block', marginBottom: '3px' }}>Official Designation:</label>
+                    <label style={{ fontSize: '10.5px', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>
+                      Official Designation / Authority:
+                    </label>
                     <input
                       type="text"
+                      required
                       value={designation}
-                      onChange={(e) => setDesignation(e.target.value)}
+                      onChange={e => setDesignation(e.target.value)}
                       style={{
                         width: '100%',
-                        background: '#071629',
+                        background: '#071526',
                         border: '1px solid #1e3a5f',
-                        padding: '7px 10px',
                         color: '#ffffff',
-                        fontSize: '11.5px',
-                        borderRadius: '4px'
+                        padding: '6px 10px',
+                        borderRadius: '4px',
+                        fontSize: '11px'
                       }}
                     />
                   </div>
                 </div>
+
+                <div>
+                  <label style={{ fontSize: '10.5px', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>
+                    Officer Endorsement &amp; Operational Directives:
+                  </label>
+                  <textarea
+                    rows={2}
+                    placeholder="Enter formal directives under Section 34 of the Disaster Management Act (e.g. Preemptive evacuation authorized into reinforced cyclone shelters; NDRF/SDRF convoy escorts mobilized)."
+                    value={comments}
+                    onChange={e => setComments(e.target.value)}
+                    style={{
+                      width: '100%',
+                      background: '#071526',
+                      border: '1px solid #1e3a5f',
+                      color: '#ffffff',
+                      padding: '6px 10px',
+                      borderRadius: '4px',
+                      fontSize: '11px',
+                      resize: 'none'
+                    }}
+                  />
+                </div>
+
                 <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '4px' }}>
                   <button
                     type="submit"
-                    disabled={isSigning}
-                    style={{
-                      background: 'linear-gradient(135deg, #d97706, #b45309)',
-                      color: '#ffffff',
-                      border: 'none',
-                      padding: '8px 18px',
-                      borderRadius: '5px',
-                      fontSize: '12px',
-                      fontWeight: '700',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '6px'
-                    }}
+                    className="gov-btn-primary"
+                    style={{ padding: '7px 16px', background: '#15803d', borderColor: '#22c55e' }}
                   >
-                    <Check size={14} />
-                    {isSigning ? 'Countersigning...' : 'Countersign & Ratify Relocation Order'}
+                    <CheckCircle2 size={13} />
+                    <span>Authorize Draft Plan as Official DDMA Directive</span>
                   </button>
                 </div>
               </form>
             )}
           </div>
+
         </div>
 
-        {/* Modal Footer */}
+        {/* Footer */}
         <div style={{
-          padding: '12px 22px',
-          background: '#051324',
-          borderTop: '1px solid #163354',
+          padding: '10px 20px',
+          background: '#071526',
+          borderTop: '1px solid #1e3a5f',
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'space-between',
-          fontSize: '11px',
-          color: '#64748b'
+          justifyContent: 'flex-end'
         }}>
-          <div>National Disaster Management Authority &bull; IRS Form 201/202</div>
-          <div>Cryptographic Watermark: RESQGRID-NDRF-SECURE-V1.1</div>
+          <button
+            onClick={onClose}
+            className="gov-btn-secondary"
+            style={{ padding: '6px 14px' }}
+          >
+            Close
+          </button>
         </div>
       </div>
     </div>

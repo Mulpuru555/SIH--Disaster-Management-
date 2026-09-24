@@ -39,6 +39,14 @@ export default function TacticalMap({
   const [radarPath, setRadarPath] = useState(null);
   const [radarTimestamp, setRadarTimestamp] = useState(null);
 
+  // Simple Layer Controls (SIH26191 Section 7 Mandate)
+  const [layerVisibility, setLayerVisibility] = useState({
+    hazardZones: true,
+    habitations: true,
+    relocationSites: true,
+    routes: true
+  });
+
   const layersRef = useRef({
     nationalHotspots: L.layerGroup(),
     cyclone: L.layerGroup(),
@@ -448,24 +456,37 @@ export default function TacticalMap({
         const rawPriority = Number(h.priority_score || 0.8).toFixed(3);
 
         const popupHtml = `
-          <div style="font-size: 12px; min-width: 250px; line-height: 1.5; font-family: sans-serif;">
-            <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid ${badgeBg}; padding-bottom: 6px; margin-bottom: 8px;">
+          <div style="font-size: 12px; min-width: 260px; line-height: 1.45; font-family: sans-serif;">
+            <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid ${badgeBg}; padding-bottom: 5px; margin-bottom: 6px;">
               <strong style="color: #f8fafc; font-size: 13px;">${h.name}</strong>
-              <span style="background: ${badgeBg}; color: white; padding: 2px 8px; border-radius: 4px; font-weight: bold; font-size: 10.5px;">${h.zone} ZONE</span>
+              <span style="background: ${badgeBg}; color: white; padding: 2px 7px; border-radius: 3px; font-weight: bold; font-size: 10px;">${h.zone} ZONE</span>
             </div>
-            <div style="color: #cbd5e1;">
-              <div>&bull; <b>Population at Risk:</b> ${h.population.toLocaleString()} citizens</div>
-              <div>&bull; <b>Ground Terrain:</b> <span style="color: #38bdf8;">${h.terrain_description || 'Riparian Embankment Ward'}</span></div>
-              <div>&bull; <b>Distance from River/Surge:</b> <span style="color: #f59e0b; font-weight: bold;">${h.river_distance_m || 65}m</span> (High-water line)</div>
-              <div>&bull; <b>Slope Gradient:</b> ${h.slope_degrees}&deg; | <b>FS Factor:</b> <span style="color: ${h.factor_of_safety < 1.25 ? '#f87171' : '#4ade80'}; font-weight: bold;">${h.factor_of_safety}</span></div>
-              <div>&bull; <b>Vulnerable Groups:</b> ${h.elderly_count} Elderly | ${h.infant_count} Infants | ${h.pwd_count} PwD</div>
-              <div>&bull; <b>Kutcha Houses:</b> ${h.kutcha_houses} (${Math.round((h.kutcha_houses / h.population) * 100)}%)</div>
-              <div>&bull; <b>Relocation Urgency Score:</b> <span style="color: ${isRed ? '#f87171' : '#fb923c'}; font-weight: 800;">${urgencyScore} / 100</span> <span style="font-size: 10px; color: #94a3b8;">(Weighted Multiplier Index: <b>${rawPriority}</b>)</span></div>
+            
+            <div style="color: #cbd5e1; font-size: 11px;">
+              <div>&bull; <b>Population at Risk:</b> ${h.population.toLocaleString()} citizens (Census Record)</div>
+              <div>&bull; <b>Vulnerable Groups:</b> ${h.elderly_count} Elderly &bull; ${h.infant_count} Infants &bull; ${h.pwd_count} PwD</div>
             </div>
-            <button id="btn-xai-${h.id}" style="width: 100%; margin-top: 10px; background: #1e40af; color: white; border: 1px solid #3b82f6; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: bold;">
-              🔍 View Explainable AI Rationale (SHAP)
+
+            <!-- Explainable Hazard Section (Section 8 Mandate) -->
+            <div style="background: ${isRed ? 'rgba(220,38,38,0.12)' : isOrange ? 'rgba(217,119,6,0.12)' : 'rgba(21,128,61,0.12)'}; border-left: 3px solid ${badgeBg}; padding: 5px 8px; margin: 6px 0; font-size: 10.5px; border-radius: 2px;">
+              <b style="color: #ffffff;">HAZARD EVALUATION (WHY ${h.zone}?):</b>
+              <div style="color: #cbd5e1; margin-top: 2px; line-height: 1.35;">
+                &bull; <b>Slope &amp; Elevation:</b> ${h.slope_degrees}&deg; Gradient &bull; ${h.elevation_m || 8}m MSL<br/>
+                &bull; <b>Slope Stability:</b> Factor of Safety = <strong style="color: ${h.factor_of_safety < 1.25 ? '#f87171' : '#4ade80'}">${h.factor_of_safety}</strong> (${h.factor_of_safety < 1.25 ? 'Critical Unstable' : 'Stable'})<br/>
+                &bull; <b>Surge / High-Water Distance:</b> <span style="color: #f59e0b; font-weight: bold;">${h.river_distance_m || 65}m</span><br/>
+                &bull; <b>Historical Recurrence:</b> ${h.historical_disaster_count || 4} Events (Past 20 Yrs)<br/>
+                &bull; <b>Kutcha Housing:</b> ${h.kutcha_houses} Units (${Math.round((h.kutcha_houses / h.population) * 100)}%)
+              </div>
+            </div>
+
+            <div style="font-size: 10px; color: #94a3b8; margin-top: 4px;">
+              Relocation Priority Index: <b>${rawPriority}</b> (Urgency Score: <span style="color: ${isRed ? '#f87171' : '#fb923c'}; font-weight: bold;">${urgencyScore}/100</span>)
+            </div>
+
+            <button id="btn-xai-${h.id}" style="width: 100%; margin-top: 8px; background: #1d4ed8; color: white; border: 1px solid #3b82f6; padding: 5px 8px; border-radius: 3px; cursor: pointer; font-size: 11px; font-weight: 600;">
+              🔍 View Detailed Decision Rationale (SHAP)
             </button>
-            <button id="btn-dem-${h.id}" style="width: 100%; margin-top: 6px; background: #065f46; color: white; border: 1px solid #10b981; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 6px;">
+            <button id="btn-dem-${h.id}" style="width: 100%; margin-top: 5px; background: #065f46; color: white; border: 1px solid #10b981; padding: 5px 8px; border-radius: 3px; cursor: pointer; font-size: 11px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 5px;">
               <span>🏔️ 3D Slope &amp; Inundation Model</span>
             </button>
           </div>
@@ -502,17 +523,22 @@ export default function TacticalMap({
           zIndexOffset: 400
         });
 
+        const availableBuffer = Math.max(0, s.effective_capacity - s.current_occupancy);
+
         sMarker.bindPopup(`
-          <div style="font-size: 12px; min-width: 220px; font-family: sans-serif;">
-            <div style="border-bottom: 2px solid #0284c7; padding-bottom: 5px; margin-bottom: 6px;">
+          <div style="font-size: 12px; min-width: 240px; font-family: sans-serif; line-height: 1.45;">
+            <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #0284c7; padding-bottom: 5px; margin-bottom: 6px;">
               <strong style="color: #38bdf8; font-size: 13px;">🏕️ ${s.name}</strong>
+              <span style="background: ${availableBuffer > 0 ? '#15803d' : '#b45309'}; color: white; padding: 1px 5px; border-radius: 3px; font-size: 9.5px; font-weight: bold;">
+                ${availableBuffer > 0 ? 'CAPACITY AVAILABLE' : 'AT CAPACITY'}
+              </span>
             </div>
-            <div style="color: #cbd5e1; line-height: 1.4;">
-              <div>&bull; <b>Effective Capacity:</b> ${s.effective_capacity.toLocaleString()} evacuees</div>
+            <div style="color: #cbd5e1; font-size: 11px;">
+              <div>&bull; <b>Registered Capacity:</b> ${s.effective_capacity.toLocaleString()} persons</div>
               <div>&bull; <b>Allocated Occupancy:</b> ${s.current_occupancy.toLocaleString()} (${fillPct}%)</div>
-              <div style="color: #fbbf24; margin-top: 3px;">&bull; <b>Active Bottleneck:</b> ${s.bottleneck_resource}</div>
-              <div style="font-size: 11px; color: #94a3b8; border-top: 1px solid #1e3a5f; margin-top: 6px; padding-top: 4px;">
-                Beds: ${s.beds} | Water: ${s.water_liters.toLocaleString()}L | Toilets: ${s.toilets_count}
+              <div>&bull; <b>Available Buffer:</b> <strong style="color: ${availableBuffer > 0 ? '#86efac' : '#f87171'}">${availableBuffer.toLocaleString()} persons</strong></div>
+              <div style="font-size: 10.5px; color: #94a3b8; border-top: 1px solid #1e3a5f; margin-top: 5px; padding-top: 4px;">
+                <b>Sphere Verification:</b> Beds: ${s.beds} &bull; Water: ${s.water_liters.toLocaleString()}L &bull; Toilets: ${s.toilets_count}
               </div>
             </div>
           </div>
@@ -590,6 +616,41 @@ export default function TacticalMap({
     }
 
   }, [habitations, shelters, resettlementSites, evacuationPlan, horizon, currentSector]);
+
+  // Synchronize Layer Group Visibility with Layer Checkboxes (SIH26191 Section 7 Mandate)
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    if (!map) return;
+    const layers = layersRef.current;
+
+    if (layerVisibility.hazardZones) {
+      if (!map.hasLayer(layers.cyclone)) map.addLayer(layers.cyclone);
+      if (!map.hasLayer(layers.polygons)) map.addLayer(layers.polygons);
+    } else {
+      if (map.hasLayer(layers.cyclone)) map.removeLayer(layers.cyclone);
+      if (map.hasLayer(layers.polygons)) map.removeLayer(layers.polygons);
+    }
+
+    if (layerVisibility.habitations) {
+      if (!map.hasLayer(layers.markers)) map.addLayer(layers.markers);
+    } else {
+      if (map.hasLayer(layers.markers)) map.removeLayer(layers.markers);
+    }
+
+    if (layerVisibility.relocationSites) {
+      if (!map.hasLayer(layers.shelters)) map.addLayer(layers.shelters);
+      if (!map.hasLayer(layers.resettlement)) map.addLayer(layers.resettlement);
+    } else {
+      if (map.hasLayer(layers.shelters)) map.removeLayer(layers.shelters);
+      if (map.hasLayer(layers.resettlement)) map.removeLayer(layers.resettlement);
+    }
+
+    if (layerVisibility.routes) {
+      if (!map.hasLayer(layers.routes)) map.addLayer(layers.routes);
+    } else {
+      if (map.hasLayer(layers.routes)) map.removeLayer(layers.routes);
+    }
+  }, [layerVisibility]);
 
   return (
     <div className="gov-card" style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
@@ -787,6 +848,43 @@ export default function TacticalMap({
             <Mountain size={13} />
             <span>🏔️ 3D Terrain DEM</span>
           </button>
+        </div>
+
+        {/* Center-Right: Simple Institutional Layer Controls (SIH26191 Section 7 Mandate) */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px', color: '#cbd5e1' }}>
+          <span style={{ fontSize: '10px', color: '#94a3b8', fontWeight: '700' }}>LAYERS:</span>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '3px', cursor: 'pointer' }}>
+            <input
+              type="checkbox"
+              checked={layerVisibility.hazardZones}
+              onChange={e => setLayerVisibility(p => ({ ...p, hazardZones: e.target.checked }))}
+            />
+            <span>Hazard Zones</span>
+          </label>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '3px', cursor: 'pointer' }}>
+            <input
+              type="checkbox"
+              checked={layerVisibility.habitations}
+              onChange={e => setLayerVisibility(p => ({ ...p, habitations: e.target.checked }))}
+            />
+            <span>Habitations</span>
+          </label>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '3px', cursor: 'pointer' }}>
+            <input
+              type="checkbox"
+              checked={layerVisibility.relocationSites}
+              onChange={e => setLayerVisibility(p => ({ ...p, relocationSites: e.target.checked }))}
+            />
+            <span>Relocation Sites</span>
+          </label>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '3px', cursor: 'pointer' }}>
+            <input
+              type="checkbox"
+              checked={layerVisibility.routes}
+              onChange={e => setLayerVisibility(p => ({ ...p, routes: e.target.checked }))}
+            />
+            <span>Routes</span>
+          </label>
         </div>
 
         {/* Right: High-Resolution Zero-Watermark Base Map Layer Switcher */}

@@ -308,6 +308,7 @@ export default function App() {
         solverStatus={solverStats.status}
         horizon={horizon}
         onHorizonChange={setHorizon}
+        operationalMode={operationalMode}
       />
 
       {/* Official In-App Emergency Broadcast Toast */}
@@ -318,69 +319,24 @@ export default function App() {
         />
       )}
 
-      {/* 3-STEP GUIDED DECISION PIPELINE BANNER (Crystal-Clear for Judges) */}
-      <div style={{
-        margin: '0 16px 10px 16px',
-        background: 'linear-gradient(90deg, #071a30, #0d2847, #071a30)',
-        border: '1px solid #1e3a5f',
-        borderRadius: '6px',
-        padding: '7px 14px',
-        display: 'flex',
-        flexWrap: 'wrap',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        gap: '10px'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ fontSize: '9.5px', background: '#1e3a5f', color: '#60a5fa', padding: '2px 6px', borderRadius: '3px', fontWeight: '800', letterSpacing: '0.5px' }}>
-            STATUTORY DM ACT WORKFLOW
-          </span>
-          <span style={{ fontSize: '11px', color: '#cbd5e1', fontWeight: '600' }}>
-            Decision Support Pipeline:
-          </span>
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '14px', fontSize: '11px', flexWrap: 'wrap' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ background: '#dc2626', color: 'white', width: '17px', height: '17px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 'bold' }}>1</span>
-            <strong style={{ color: '#fca5a5' }}>Identify Red Zones</strong>
-            <span style={{ color: '#94a3b8', fontSize: '10px' }}>(DEM Slope + AWS Rain + Soil)</span>
-          </div>
-
-          <span style={{ color: '#38bdf8' }}>&rarr;</span>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ background: '#0284c7', color: 'white', width: '17px', height: '17px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 'bold' }}>2</span>
-            <strong style={{ color: '#93c5fd' }}>Sphere Capacity Audit</strong>
-            <span style={{ color: '#94a3b8', fontSize: '10px' }}>(Space, Water, Beds, Toilets)</span>
-          </div>
-
-          <span style={{ color: '#38bdf8' }}>&rarr;</span>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ background: '#16a34a', color: 'white', width: '17px', height: '17px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 'bold' }}>3</span>
-            <strong style={{ color: '#86efac' }}>Zero-Overflow Relocation</strong>
-            <span style={{ color: '#94a3b8', fontSize: '10px' }}>(Google OR-Tools in ~5ms)</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Active Storm Arnab Operational Warning & Quick Actions Banner */}
+      {/* Active Storm Operational Warning & Quick Actions Banner */}
       <ActiveStormBanner
         onSelectStormSector={handleSectorChange}
         onToggleRadar={() => setIsRadarActive(prev => !prev)}
         isRadarActive={isRadarActive}
-        onDetectLocation={handleDetectLocation}
         currentSector={currentSector}
         liveWeather={liveWeather}
       />
 
-      {/* Metrics Overview Bar */}
+      {/* 5-Question Executive Situation & Relocation Summary (SIH26191 Mandate) */}
       <MetricsOverview
         habitations={habitations}
         shelters={shelters}
         resettlementSites={resettlementSites}
-        solverStats={solverStats}
+        currentSector={currentSector}
+        liveWeather={liveWeather}
+        onOpenRelocationPlan={() => setIsOpOrdOpen(true)}
+        horizon={horizon}
       />
 
       {/* Tab 1: Integrated GIS Command */}
@@ -498,30 +454,39 @@ export default function App() {
         />
       )}
 
-      {/* NDRF Official Operational Relocation Order (OP-ORD) Modal */}
+      {/* Draft Relocation Plan & Statutory Allocation Modal */}
       {isOpOrdOpen && (
         <OperationalOrderModal
           isOpen={isOpOrdOpen}
           onClose={() => setIsOpOrdOpen(false)}
-          currentSim={simParams}
           habitations={habitations}
           shelters={shelters}
+          evacuationPlan={evacuationPlan}
+          currentSector={currentSector}
+          liveWeather={liveWeather}
         />
       )}
 
-      {/* NDRF AI Decision Support Assistant Modal */}
+      {/* ResQGrid Decision Support Modal */}
       {isAIAssistantOpen && (
         <AIAssistantModal
           isOpen={isAIAssistantOpen}
           onClose={() => setIsAIAssistantOpen(false)}
+          habitations={habitations}
+          shelters={shelters}
+          resettlementSites={resettlementSites}
+          currentSector={currentSector}
+          liveWeather={liveWeather}
+          horizon={horizon}
         />
       )}
 
-      {/* Live Hydro-Meteorological Telemetry (CWC / IMD) Modal */}
+      {/* Authoritative Data Feeds & Telemetry Provenance Modal */}
       {isTelemetryOpen && (
         <LiveTelemetryModal
           isOpen={isTelemetryOpen}
           onClose={() => setIsTelemetryOpen(false)}
+          currentSector={currentSector}
         />
       )}
 

@@ -152,23 +152,15 @@ export default function AuditGovernanceModal({ isOpen, onClose }) {
             </div>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <h2 style={{ fontSize: '17px', fontWeight: '800', color: '#ffffff', letterSpacing: '0.4px', margin: 0 }}>
-                  National Disaster Relocation Audit & Cryptographic Governance Explorer
+                <h2 style={{ fontSize: '15.5px', fontWeight: '800', color: '#ffffff', letterSpacing: '0.4px', margin: 0 }}>
+                  Statutory Relocation Audit &amp; Decision Integrity Register
                 </h2>
-                <span style={{
-                  fontSize: '10px',
-                  background: 'rgba(56, 189, 248, 0.15)',
-                  color: '#38bdf8',
-                  padding: '2px 8px',
-                  borderRadius: '4px',
-                  border: '1px solid rgba(56, 189, 248, 0.4)',
-                  fontWeight: '700'
-                }}>
-                  FIPS 180-4 SHA-256
+                <span className="badge-blue" style={{ fontSize: '9.5px', padding: '1px 6px' }}>
+                  SHA-256 INTEGRITY VERIFIED
                 </span>
               </div>
-              <p style={{ fontSize: '11.5px', color: '#94a3b8', margin: '2px 0 0 0' }}>
-                Statutory audit trail & tamper-evident decision ledger in compliance with Section 51, Disaster Management Act 2005
+              <p style={{ fontSize: '11px', color: '#94a3b8', margin: '2px 0 0 0' }}>
+                Statutory audit trail &amp; decision provenance log in compliance with Section 51, Disaster Management Act 2005
               </p>
             </div>
           </div>

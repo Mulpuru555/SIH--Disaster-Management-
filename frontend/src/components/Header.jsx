@@ -1,9 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { Shield, ShieldCheck, FileText, Clock, Map, ListFilter, Home, Compass, Bot, Activity, Layers } from 'lucide-react';
+import { Shield, FileText, Clock, Map, ListFilter, Home, Bot, Activity, Layers, ShieldCheck, Radio } from 'lucide-react';
 
 export default function Header({ 
-  activeTab, onTabChange, onOpenManifest, horizon, onHorizonChange,
-  onOpenAIAssistant, onOpenTelemetry, onOpenGISUpload, onOpenAudit 
+  activeTab, 
+  onTabChange, 
+  onOpenManifest, 
+  horizon, 
+  onHorizonChange,
+  onOpenAIAssistant, 
+  onOpenTelemetry, 
+  onOpenGISUpload, 
+  onOpenAudit,
+  operationalMode = 'LIVE'
 }) {
   const [timeStr, setTimeStr] = useState('');
 
@@ -22,199 +30,156 @@ export default function Header({
   }, []);
 
   return (
-    <header style={{ background: '#07192f', borderBottom: '1px solid #1e3a5f' }}>
-      {/* 1. Indian National Tricolor Bar */}
+    <header style={{ background: '#0a1d35', borderBottom: '1px solid #1e3a5f' }}>
+      {/* 1. Official Indian National Tricolor Bar */}
       <div className="gov-tricolor-bar"></div>
 
-      {/* 2. Official Government Branding Header */}
+      {/* 2. Official Ministry & Department Header */}
       <div style={{
-        padding: '10px 24px',
+        padding: '10px 20px',
         display: 'flex',
         flexWrap: 'wrap',
         alignItems: 'center',
         justifyContent: 'space-between',
         gap: '12px',
-        borderBottom: '1px solid rgba(255,255,255,0.06)'
+        borderBottom: '1px solid rgba(255, 255, 255, 0.08)'
       }}>
-        {/* Left: National Emblem & Department Identification */}
+        {/* Left: National Emblem & Formal Identification */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-          {/* Emblem Icon */}
           <div style={{
-            background: 'linear-gradient(135deg, #1e3a5f, #0d2847)',
+            background: '#071526',
             border: '1px solid #d97706',
-            borderRadius: '6px',
-            padding: '8px 10px',
+            borderRadius: '4px',
+            padding: '6px 8px',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            minWidth: '46px'
+            minWidth: '42px'
           }}>
-            <Shield size={22} color="#d97706" />
-            <span style={{ fontSize: '7.5px', color: '#f59e0b', fontWeight: 'bold', marginTop: '2px', letterSpacing: '0.5px' }}>
+            <Shield size={20} color="#d97706" />
+            <span style={{ fontSize: '7px', color: '#f59e0b', fontWeight: 'bold', marginTop: '2px', letterSpacing: '0.4px' }}>
               सत्यमेव जयते
             </span>
           </div>
 
           <div>
-            <div style={{ fontSize: '11px', color: '#94a3b8', letterSpacing: '0.8px', textTransform: 'uppercase', fontWeight: '700' }}>
+            <div style={{ fontSize: '10.5px', color: '#94a3b8', letterSpacing: '0.6px', textTransform: 'uppercase', fontWeight: '700' }}>
               भारत सरकार &bull; Government of India &bull; Ministry of Home Affairs
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '2px' }}>
-              <h1 style={{ fontSize: '17px', fontWeight: '800', color: '#ffffff', letterSpacing: '0.5px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '2px', flexWrap: 'wrap' }}>
+              <h1 style={{ fontSize: '16.5px', fontWeight: '800', color: '#ffffff', letterSpacing: '0.4px' }}>
                 ResQGrid
               </h1>
               <span style={{ fontSize: '11px', color: '#cbd5e1', fontWeight: '500' }}>
                 National Proactive Relocation Intelligence Platform
               </span>
-              <span style={{ fontSize: '10.5px', background: 'rgba(217, 119, 6, 0.2)', color: '#fbbf24', border: '1px solid rgba(217, 119, 6, 0.5)', padding: '2px 8px', borderRadius: '4px', fontWeight: '700' }}>
+              <span style={{
+                fontSize: '10px',
+                background: 'rgba(217, 119, 6, 0.15)',
+                color: '#f59e0b',
+                border: '1px solid rgba(217, 119, 6, 0.4)',
+                padding: '1px 6px',
+                borderRadius: '3px',
+                fontWeight: '700'
+              }}>
                 SIH26191 (NDRF)
-              </span>
-              <span style={{ fontSize: '10.5px', background: 'rgba(37, 99, 235, 0.2)', color: '#60a5fa', border: '1px solid rgba(37, 99, 235, 0.5)', padding: '2px 8px', borderRadius: '4px', fontWeight: '700' }}>
-                Team 16: BharatBytes
               </span>
             </div>
           </div>
         </div>
 
-        {/* Right: Operational Status & Clock */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <div style={{ textAlign: 'right' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', justifyContent: 'flex-end', fontSize: '11px', color: '#34d399', fontWeight: 'bold' }}>
-              <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#22c55e', display: 'inline-block' }}></span>
-              DEOC RELOCATION CELL &bull; ACTIVE
+        {/* Right: Operational Status, Clock & Essential Decision Actions */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+          {/* Status & Clock */}
+          <div style={{ textAlign: 'right', paddingRight: '6px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', justifyContent: 'flex-end', fontSize: '11px', fontWeight: '700' }}>
+              {operationalMode === 'LIVE' ? (
+                <span className="badge-blue" style={{ fontSize: '10px', padding: '2px 6px' }}>
+                  <Radio size={11} />
+                  <span>LIVE SENSOR TELEMETRY</span>
+                </span>
+              ) : (
+                <span className="badge-amber" style={{ fontSize: '10px', padding: '2px 6px' }}>
+                  <span>⚠️ SIMULATION MODE (WHAT-IF)</span>
+                </span>
+              )}
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '10.5px', color: '#94a3b8', marginTop: '2px', justifyContent: 'flex-end' }}>
-              <Clock size={12} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '10px', color: '#94a3b8', marginTop: '3px', justifyContent: 'flex-end' }}>
+              <Clock size={11} />
               <span>{timeStr}</span>
             </div>
           </div>
 
+          {/* Action 1: Decision Support AI */}
           <button
             onClick={onOpenAIAssistant}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              fontSize: '12px',
-              fontWeight: '700',
-              background: 'linear-gradient(135deg, #065f46, #047857)',
-              color: '#ffffff',
-              border: '1px solid #10b981',
-              padding: '7px 13px',
-              borderRadius: '5px',
-              cursor: 'pointer',
-              boxShadow: '0 2px 8px rgba(16, 185, 129, 0.25)',
-              transition: 'all 0.2s'
-            }}
+            className="gov-btn-secondary"
+            title="Evidence-grounded operational guidance for District Authorities"
           >
-            <Bot size={15} color="#6ee7b7" />
-            <span>NDRF AI Assistant</span>
+            <Bot size={13} color="#93c5fd" />
+            <span>Decision Support</span>
           </button>
 
+          {/* Action 2: Data Provenance & Feeds */}
           <button
             onClick={onOpenTelemetry}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              fontSize: '12px',
-              fontWeight: '600',
-              background: '#0d2847',
-              color: '#38bdf8',
-              border: '1px solid #1e40af',
-              padding: '7px 12px',
-              borderRadius: '5px',
-              cursor: 'pointer',
-              transition: 'all 0.2s'
-            }}
+            className="gov-btn-secondary"
+            title="Inspect live IMD AWS, satellite feeds, and data freshness"
           >
-            <Activity size={14} color="#38bdf8" />
-            <span>CWC / IMD Telemetry</span>
+            <Activity size={13} color="#38bdf8" />
+            <span>Data Provenance</span>
           </button>
 
+          {/* Action 3: Upload GIS Layer */}
           <button
             onClick={onOpenGISUpload}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              fontSize: '12px',
-              fontWeight: '600',
-              background: '#0d2847',
-              color: '#fbbf24',
-              border: '1px solid #d97706',
-              padding: '7px 12px',
-              borderRadius: '5px',
-              cursor: 'pointer',
-              transition: 'all 0.2s'
-            }}
+            className="gov-btn-secondary"
+            title="Upload GeoJSON hazard zone boundaries or survey polygons"
           >
-            <Layers size={14} color="#f59e0b" />
-            <span>Upload GIS Layer</span>
+            <Layers size={13} color="#f59e0b" />
+            <span>Upload GIS</span>
           </button>
 
+          {/* Action 4: Draft Relocation Plan (Statutory Document) */}
           <button
             onClick={onOpenManifest}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              fontSize: '12px',
-              fontWeight: '700',
-              background: 'linear-gradient(135deg, #1e3a5f, #1e40af)',
-              color: '#ffffff',
-              border: '1px solid #3b82f6',
-              padding: '7px 14px',
-              borderRadius: '5px',
-              cursor: 'pointer',
-              boxShadow: '0 2px 8px rgba(37, 99, 235, 0.3)',
-              transition: 'background 0.2s'
-            }}
+            className="gov-btn-primary"
+            title="Generate and review Draft Relocation Plan pending statutory approval"
           >
-            <FileText size={15} color="#38bdf8" />
-            <span>NDRF OP-ORD</span>
+            <FileText size={13} />
+            <span>Draft Relocation Plan</span>
           </button>
 
+          {/* Action 5: Audit & Governance */}
           <button
             onClick={onOpenAudit}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              fontSize: '12px',
-              fontWeight: '700',
-              background: 'linear-gradient(135deg, #0c4a6e, #0369a1)',
-              color: '#ffffff',
-              border: '1px solid #38bdf8',
-              padding: '7px 13px',
-              borderRadius: '5px',
-              cursor: 'pointer',
-              boxShadow: '0 2px 8px rgba(56, 189, 248, 0.25)',
-              transition: 'all 0.2s'
-            }}
+            className="gov-btn-secondary"
+            title="Statutory audit log of decision recommendations and data provenance"
           >
-            <ShieldCheck size={15} color="#38bdf8" />
-            <span>Audit & Governance</span>
+            <ShieldCheck size={13} color="#94a3b8" />
+            <span>Audit</span>
           </button>
         </div>
       </div>
 
-      {/* 3. Official Navigation Tabs Bar */}
+      {/* 3. Official Navigation & Planning Horizon Toolbar */}
       <div style={{
-        padding: '0 24px',
+        padding: '0 20px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        background: '#0a1d35',
-        borderBottom: '1px solid #163354'
+        background: '#071526',
+        borderBottom: '1px solid #163354',
+        flexWrap: 'wrap',
+        gap: '8px'
       }}>
         {/* Navigation Tabs */}
-        <div style={{ display: 'flex', gap: '4px' }}>
+        <div style={{ display: 'flex', gap: '2px' }}>
           {[
             { id: 'gis', label: 'Integrated GIS Command', icon: Map },
             { id: 'habitations', label: 'Habitations Risk Register', icon: ListFilter },
-            { id: 'shelters', label: 'Relief Camps & Capacity Matrix', icon: Home }
+            { id: 'shelters', label: 'Relief Camps & Carrying Capacity', icon: Home }
           ].map(tab => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -225,71 +190,73 @@ export default function Header({
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '7px',
-                  padding: '11px 16px',
-                  fontSize: '12px',
+                  gap: '6px',
+                  padding: '9px 14px',
+                  fontSize: '11.5px',
                   fontWeight: isActive ? '700' : '500',
                   color: isActive ? '#ffffff' : '#94a3b8',
-                  background: isActive ? '#132e50' : 'transparent',
+                  background: isActive ? '#0f2744' : 'transparent',
                   border: 'none',
-                  borderBottom: isActive ? '3px solid #3b82f6' : '3px solid transparent',
-                  cursor: 'pointer',
-                  transition: 'all 0.15s'
+                  borderBottom: isActive ? '3px solid #2563eb' : '3px solid transparent',
+                  cursor: 'pointer'
                 }}
               >
-                <Icon size={14} color={isActive ? '#38bdf8' : '#64748b'} />
+                <Icon size={13} color={isActive ? '#38bdf8' : '#64748b'} />
                 <span>{tab.label}</span>
               </button>
             );
           })}
         </div>
 
-        {/* 3-Tier Horizon Selector (NDRF Mandate) */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 0' }}>
-          <span style={{ fontSize: '11px', color: '#94a3b8', fontWeight: '600' }}>Relocation Horizon:</span>
-          <div style={{ display: 'flex', background: '#071526', padding: '2px', borderRadius: '5px', border: '1px solid #1e3a5f' }}>
+        {/* 3-Tier Horizon Selector (SIH26191 Core Requirement) */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '5px 0' }}>
+          <span style={{ fontSize: '10.5px', color: '#94a3b8', fontWeight: '600' }}>Relocation Horizon:</span>
+          <div style={{ display: 'flex', background: '#0a1d35', padding: '2px', borderRadius: '4px', border: '1px solid #1e3a5f' }}>
             <button
               onClick={() => onHorizonChange('immediate')}
               style={{
-                padding: '4px 10px',
-                fontSize: '11px',
-                fontWeight: '600',
-                borderRadius: '4px',
+                background: horizon === 'immediate' ? '#b91c1c' : 'transparent',
+                color: horizon === 'immediate' ? '#ffffff' : '#94a3b8',
                 border: 'none',
-                cursor: 'pointer',
-                background: horizon === 'immediate' ? '#dc2626' : 'transparent',
-                color: horizon === 'immediate' ? 'white' : '#94a3b8'
+                padding: '4px 9px',
+                borderRadius: '3px',
+                fontSize: '10.5px',
+                fontWeight: horizon === 'immediate' ? '700' : '500',
+                cursor: 'pointer'
               }}
+              title="Immediate emergency evacuation to cyclone/flood shelters (0-48h)"
             >
-              🚨 Immediate (0-48h)
+              🚨 Immediate (0–48h)
             </button>
             <button
               onClick={() => onHorizonChange('short_term')}
               style={{
-                padding: '4px 10px',
-                fontSize: '11px',
-                fontWeight: '600',
-                borderRadius: '4px',
+                background: horizon === 'short_term' ? '#b45309' : 'transparent',
+                color: horizon === 'short_term' ? '#ffffff' : '#94a3b8',
                 border: 'none',
-                cursor: 'pointer',
-                background: horizon === 'short_term' ? '#ea580c' : 'transparent',
-                color: horizon === 'short_term' ? 'white' : '#94a3b8'
+                padding: '4px 9px',
+                borderRadius: '3px',
+                fontSize: '10.5px',
+                fontWeight: horizon === 'short_term' ? '700' : '500',
+                cursor: 'pointer'
               }}
+              title="Seasonal temporary relocation & relief staging"
             >
-              ⏳ Short-Term (Pre-Monsoon)
+              ⚠️ Short-Term (Pre-Monsoon)
             </button>
             <button
               onClick={() => onHorizonChange('medium_term')}
               style={{
-                padding: '4px 10px',
-                fontSize: '11px',
-                fontWeight: '600',
-                borderRadius: '4px',
-                border: 'none',
-                cursor: 'pointer',
                 background: horizon === 'medium_term' ? '#15803d' : 'transparent',
-                color: horizon === 'medium_term' ? 'white' : '#94a3b8'
+                color: horizon === 'medium_term' ? '#ffffff' : '#94a3b8',
+                border: 'none',
+                padding: '4px 9px',
+                borderRadius: '3px',
+                fontSize: '10.5px',
+                fontWeight: horizon === 'medium_term' ? '700' : '500',
+                cursor: 'pointer'
               }}
+              title="Permanent rehabilitation onto hazard-free tableland townships"
             >
               🏡 Medium-Term (Permanent)
             </button>
