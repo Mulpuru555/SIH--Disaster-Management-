@@ -222,56 +222,48 @@ export default function TacticalMap({
     layers.routes.clearLayers();
     layers.polygons.clearLayers();
 
-    // 1. National Alert Hotspots (ONLY displayed on All-India National Overview to prevent pin clumping!)
+    // 1. National Alert Hotspots (Clean, non-clumping circular indicators for national overview)
     if (currentSector === 'all_india') {
       NATIONAL_HOTSPOTS.forEach(spot => {
         const isRed = spot.alert_level === 'RED';
-        const pulseColor = isRed ? '#dc2626' : '#ea580c';
+        const pulseColor = isRed ? '#b91c1c' : '#c2410c';
 
-        const nationalIcon = L.divIcon({
-          className: 'gov-national-hotspot-pin',
-          html: `
-            <div style="display: flex; flex-direction: column; align-items: center; cursor: pointer;">
-              <div style="position: relative; display: flex; align-items: center; justify-content: center;">
-                <div style="position: absolute; width: 30px; height: 30px; border-radius: 50%; background: ${pulseColor}; opacity: 0.35;"></div>
-                <div style="background: ${pulseColor}; color: white; border: 2px solid #ffffff; border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 11px; box-shadow: 0 4px 10px rgba(0,0,0,0.6); z-index: 2;">
-                  ${isRed ? '🚨' : '⚠️'}
-                </div>
-              </div>
-              <div style="background: rgba(7, 25, 47, 0.95); color: #ffffff; border: 1px solid #1e3a5f; border-radius: 4px; padding: 2px 6px; font-size: 9.5px; font-weight: 700; white-space: nowrap; margin-top: 2px; box-shadow: 0 2px 6px rgba(0,0,0,0.5);">
-                ${spot.district.split(' ')[0]} &bull; ${spot.alert_level}
-              </div>
-            </div>
-          `,
-          iconSize: [110, 46],
-          iconAnchor: [55, 23]
+        const spotMarker = L.circleMarker([spot.lat, spot.lng], {
+          radius: isRed ? 7 : 5.5,
+          color: '#ffffff',
+          fillColor: pulseColor,
+          fillOpacity: 0.9,
+          weight: 2
         });
 
-        const spotMarker = L.marker([spot.lat, spot.lng], { icon: nationalIcon, zIndexOffset: 500 });
+        spotMarker.bindTooltip(`<b>${spot.district}</b> &bull; ${spot.alert_level} ALERT`, {
+          direction: 'top',
+          offset: [0, -6]
+        });
 
         const spotPopup = `
-          <div style="font-size: 12px; min-width: 250px; font-family: sans-serif; line-height: 1.4;">
+          <div style="font-size: 12px; min-width: 250px; font-family: sans-serif; line-height: 1.4; color: #0f172a;">
             <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid ${pulseColor}; padding-bottom: 6px; margin-bottom: 8px;">
               <div>
-                <strong style="color: #ffffff; font-size: 13px;">${spot.district}</strong>
-                <div style="font-size: 10.5px; color: #94a3b8;">${spot.state}</div>
+                <strong style="color: #0f172a; font-size: 13px;">${spot.district}</strong>
+                <div style="font-size: 10.5px; color: #64748b;">${spot.state}</div>
               </div>
-              <span style="background: ${pulseColor}; color: white; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 10px;">${spot.alert_level} ALERT</span>
+              <span style="background: ${pulseColor}; color: white; padding: 2px 6px; border-radius: 3px; font-weight: bold; font-size: 10px;">${spot.alert_level} ALERT</span>
             </div>
 
-            <div style="color: #cbd5e1; display: flex; flex-direction: column; gap: 3px;">
-              <div>&bull; <b>Primary Threat:</b> <span style="color: #f87171;">${spot.hazard_type}</span></div>
-              <div>&bull; <b>Precipitation / Runoff:</b> <strong style="color: #38bdf8;">${spot.rainfall_rate}</strong></div>
+            <div style="color: #334155; display: flex; flex-direction: column; gap: 3px;">
+              <div>&bull; <b>Primary Threat:</b> <span style="color: #b91c1c; font-weight: 600;">${spot.hazard_type}</span></div>
+              <div>&bull; <b>Precipitation / Runoff:</b> <strong style="color: #0b2545;">${spot.rainfall_rate}</strong></div>
               <div>&bull; <b>River Basin / Catchment:</b> ${spot.river_basin}</div>
               <div>&bull; <b>At-Risk Population:</b> ${spot.population_at_risk.toLocaleString()} citizens (${spot.habitations_at_risk} habitations)</div>
-              <div style="margin-top: 4px; padding: 4px 6px; background: rgba(30, 58, 95, 0.4); border-radius: 4px; font-size: 10.5px; color: #34d399;">
+              <div style="margin-top: 4px; padding: 4px 6px; background: #f0fdf4; border-radius: 3px; font-size: 10.5px; color: #166534;">
                 &bull; <b>Status:</b> ${spot.status}
               </div>
             </div>
 
             ${spot.pilot_available ? `
-              <button id="btn-zoom-sector-${spot.sector_key}" style="width: 100%; margin-top: 10px; background: #1d4ed8; color: white; border: 1px solid #3b82f6; padding: 7px 10px; border-radius: 4px; cursor: pointer; font-size: 11.5px; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 6px;">
-                <span>Zoom to District Ground Command</span>
+              <button id="btn-zoom-sector-${spot.sector_key}" style="width: 100%; margin-top: 10px; background: #0b2545; color: white; border: none; padding: 6px 10px; border-radius: 3px; cursor: pointer; font-size: 11px; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                <span>Enter District Ground Command</span>
                 <span>&rarr;</span>
               </button>
             ` : ''}
@@ -438,10 +430,10 @@ export default function TacticalMap({
 
         const iconHtml = `
           <div style="display: flex; flex-direction: column; align-items: center; cursor: pointer;">
-            <div style="background: ${badgeBg}; color: white; border: 2px solid white; border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 11px; box-shadow: 0 2px 6px rgba(0,0,0,0.5);">
+            <div style="background: ${badgeBg}; color: white; border: 2px solid white; border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 11px; box-shadow: 0 1px 4px rgba(0,0,0,0.3);">
               ${isRed ? '!' : isOrange ? '▲' : '✓'}
             </div>
-            <div style="background: rgba(7, 25, 47, 0.95); color: white; border: 1px solid #1e3a5f; border-radius: 3px; padding: 1px 5px; font-size: 9.5px; font-weight: 600; white-space: nowrap; margin-top: 2px; box-shadow: 0 2px 5px rgba(0,0,0,0.5);">
+            <div style="background: #ffffff; color: #0f172a; border: 1px solid #cbd5e1; border-radius: 3px; padding: 1px 5px; font-size: 9.5px; font-weight: 700; white-space: nowrap; margin-top: 2px; box-shadow: 0 1px 3px rgba(0,0,0,0.15);">
               ${h.name.split('(')[0].trim().slice(0, 18)}
             </div>
           </div>
@@ -456,38 +448,35 @@ export default function TacticalMap({
         const rawPriority = Number(h.priority_score || 0.8).toFixed(3);
 
         const popupHtml = `
-          <div style="font-size: 12px; min-width: 260px; line-height: 1.45; font-family: sans-serif;">
+          <div style="font-size: 12px; min-width: 260px; line-height: 1.45; font-family: sans-serif; color: #0f172a;">
             <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid ${badgeBg}; padding-bottom: 5px; margin-bottom: 6px;">
-              <strong style="color: #f8fafc; font-size: 13px;">${h.name}</strong>
+              <strong style="color: #0f172a; font-size: 13px;">${h.name}</strong>
               <span style="background: ${badgeBg}; color: white; padding: 2px 7px; border-radius: 3px; font-weight: bold; font-size: 10px;">${h.zone} ZONE</span>
             </div>
             
-            <div style="color: #cbd5e1; font-size: 11px;">
-              <div>&bull; <b>Population at Risk:</b> ${h.population.toLocaleString()} citizens (Census Record)</div>
-              <div>&bull; <b>Vulnerable Groups:</b> ${h.elderly_count} Elderly &bull; ${h.infant_count} Infants &bull; ${h.pwd_count} PwD</div>
+            <div style="color: #334155; font-size: 11px;">
+              <div>&bull; <b>Census Population:</b> ${h.population.toLocaleString()} citizens</div>
+              <div>&bull; <b>High-Risk Groups:</b> ${h.elderly_count} Elderly &bull; ${h.infant_count} Infants &bull; ${h.pwd_count} PwD</div>
             </div>
 
-            <!-- Explainable Hazard Section (Section 8 Mandate) -->
-            <div style="background: ${isRed ? 'rgba(220,38,38,0.12)' : isOrange ? 'rgba(217,119,6,0.12)' : 'rgba(21,128,61,0.12)'}; border-left: 3px solid ${badgeBg}; padding: 5px 8px; margin: 6px 0; font-size: 10.5px; border-radius: 2px;">
-              <b style="color: #ffffff;">HAZARD EVALUATION (WHY ${h.zone}?):</b>
-              <div style="color: #cbd5e1; margin-top: 2px; line-height: 1.35;">
-                &bull; <b>Slope &amp; Elevation:</b> ${h.slope_degrees}&deg; Gradient &bull; ${h.elevation_m || 8}m MSL<br/>
-                &bull; <b>Slope Stability:</b> Factor of Safety = <strong style="color: ${h.factor_of_safety < 1.25 ? '#f87171' : '#4ade80'}">${h.factor_of_safety}</strong> (${h.factor_of_safety < 1.25 ? 'Critical Unstable' : 'Stable'})<br/>
-                &bull; <b>Surge / High-Water Distance:</b> <span style="color: #f59e0b; font-weight: bold;">${h.river_distance_m || 65}m</span><br/>
+            <!-- Explainable Hazard Section (SIH26191) -->
+            <div style="background: ${isRed ? '#fef2f2' : isOrange ? '#fff7ed' : '#f0fdf4'}; border-left: 3px solid ${badgeBg}; padding: 6px 8px; margin: 6px 0; font-size: 11px; border-radius: 2px;">
+              <b style="color: ${isRed ? '#991b1b' : isOrange ? '#9a3412' : '#166534'};">RISK FACTORS (WHY ${h.zone}?):</b>
+              <div style="color: #334155; margin-top: 2px; line-height: 1.35;">
+                &bull; <b>DEM Slope &amp; Elevation:</b> ${h.slope_degrees}&deg; Gradient &bull; ${h.elevation_m || 8}m MSL<br/>
+                &bull; <b>Slope Stability:</b> Factor of Safety = <strong style="color: ${h.factor_of_safety < 1.25 ? '#b91c1c' : '#15803d'}">${h.factor_of_safety}</strong> (${h.factor_of_safety < 1.25 ? 'Critical Unstable' : 'Slope Stable'})<br/>
+                &bull; <b>High-Water Proximity:</b> <span style="color: #b45309; font-weight: bold;">${h.river_distance_m || 65}m</span><br/>
                 &bull; <b>Historical Recurrence:</b> ${h.historical_disaster_count || 4} Events (Past 20 Yrs)<br/>
                 &bull; <b>Kutcha Housing:</b> ${h.kutcha_houses} Units (${Math.round((h.kutcha_houses / h.population) * 100)}%)
               </div>
             </div>
 
-            <div style="font-size: 10px; color: #94a3b8; margin-top: 4px;">
-              Relocation Priority Index: <b>${rawPriority}</b> (Urgency Score: <span style="color: ${isRed ? '#f87171' : '#fb923c'}; font-weight: bold;">${urgencyScore}/100</span>)
+            <div style="font-size: 10px; color: #64748b; margin-top: 4px;">
+              Relocation Priority: <b>${rawPriority}</b> (Urgency: <span style="color: ${isRed ? '#b91c1c' : '#c2410c'}; font-weight: bold;">${urgencyScore}/100</span>)
             </div>
 
-            <button id="btn-xai-${h.id}" style="width: 100%; margin-top: 8px; background: #1d4ed8; color: white; border: 1px solid #3b82f6; padding: 5px 8px; border-radius: 3px; cursor: pointer; font-size: 11px; font-weight: 600;">
-              🔍 View Detailed Decision Rationale (SHAP)
-            </button>
-            <button id="btn-dem-${h.id}" style="width: 100%; margin-top: 5px; background: #065f46; color: white; border: 1px solid #10b981; padding: 5px 8px; border-radius: 3px; cursor: pointer; font-size: 11px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 5px;">
-              <span>🏔️ 3D Slope &amp; Inundation Model</span>
+            <button id="btn-xai-${h.id}" style="width: 100%; margin-top: 8px; background: #0b2545; color: white; border: none; padding: 6px 8px; border-radius: 3px; cursor: pointer; font-size: 11px; font-weight: 600;">
+              📋 View Habitation Vulnerability Dossier
             </button>
           </div>
         `;
@@ -496,8 +485,6 @@ export default function TacticalMap({
         marker.on('popupopen', () => {
           const btn = document.getElementById(`btn-xai-${h.id}`);
           if (btn && onSelectHabitation) btn.onclick = () => onSelectHabitation(h);
-          const btnDem = document.getElementById(`btn-dem-${h.id}`);
-          if (btnDem && onOpen3DInspector) btnDem.onclick = () => onOpen3DInspector(h);
         });
 
         layers.markers.addLayer(marker);
@@ -506,15 +493,15 @@ export default function TacticalMap({
       // 3. Relief Shelters
       shelters.forEach(s => {
         const fillPct = Math.round((s.current_occupancy / Math.max(1, s.effective_capacity)) * 100);
-        const fillBadgeColor = fillPct >= 90 ? '#dc2626' : fillPct > 50 ? '#d97706' : '#15803d';
+        const fillBadgeColor = fillPct >= 90 ? '#b91c1c' : fillPct > 50 ? '#c2410c' : '#15803d';
 
         const sMarker = L.marker([s.lat, s.lng], {
           icon: L.divIcon({
             className: 'gov-shelter-pin',
             html: `
-              <div style="background: #0f3661; color: white; border: 1.5px solid #38bdf8; border-radius: 5px; padding: 3px 6px; font-size: 10px; font-weight: bold; white-space: nowrap; box-shadow: 0 2px 8px rgba(0,0,0,0.5); display: flex; align-items: center; gap: 4px;">
+              <div style="background: #ffffff; color: #0b2545; border: 1.5px solid #0b2545; border-radius: 4px; padding: 2px 6px; font-size: 10px; font-weight: bold; white-space: nowrap; box-shadow: 0 1px 4px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 4px;">
                 <span>🏕️ ${s.name.split(' ')[0]}</span>
-                <span style="background: ${fillBadgeColor}; color: white; padding: 1px 4px; border-radius: 3px; font-size: 9.5px;">${fillPct}%</span>
+                <span style="background: ${fillBadgeColor}; color: white; padding: 1px 4px; border-radius: 2px; font-size: 9px;">${fillPct}%</span>
               </div>
             `,
             iconSize: [85, 26],
@@ -526,19 +513,19 @@ export default function TacticalMap({
         const availableBuffer = Math.max(0, s.effective_capacity - s.current_occupancy);
 
         sMarker.bindPopup(`
-          <div style="font-size: 12px; min-width: 240px; font-family: sans-serif; line-height: 1.45;">
-            <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #0284c7; padding-bottom: 5px; margin-bottom: 6px;">
-              <strong style="color: #38bdf8; font-size: 13px;">🏕️ ${s.name}</strong>
+          <div style="font-size: 12px; min-width: 240px; font-family: sans-serif; line-height: 1.45; color: #0f172a;">
+            <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #0b2545; padding-bottom: 5px; margin-bottom: 6px;">
+              <strong style="color: #0b2545; font-size: 13px;">🏕️ ${s.name}</strong>
               <span style="background: ${availableBuffer > 0 ? '#15803d' : '#b45309'}; color: white; padding: 1px 5px; border-radius: 3px; font-size: 9.5px; font-weight: bold;">
-                ${availableBuffer > 0 ? 'CAPACITY AVAILABLE' : 'AT CAPACITY'}
+                ${availableBuffer > 0 ? 'BUFFER AVAILABLE' : 'AT CAPACITY'}
               </span>
             </div>
-            <div style="color: #cbd5e1; font-size: 11px;">
+            <div style="color: #334155; font-size: 11px;">
               <div>&bull; <b>Registered Capacity:</b> ${s.effective_capacity.toLocaleString()} persons</div>
               <div>&bull; <b>Allocated Occupancy:</b> ${s.current_occupancy.toLocaleString()} (${fillPct}%)</div>
-              <div>&bull; <b>Available Buffer:</b> <strong style="color: ${availableBuffer > 0 ? '#86efac' : '#f87171'}">${availableBuffer.toLocaleString()} persons</strong></div>
-              <div style="font-size: 10.5px; color: #94a3b8; border-top: 1px solid #1e3a5f; margin-top: 5px; padding-top: 4px;">
-                <b>Sphere Verification:</b> Beds: ${s.beds} &bull; Water: ${s.water_liters.toLocaleString()}L &bull; Toilets: ${s.toilets_count}
+              <div>&bull; <b>Available Buffer:</b> <strong style="color: ${availableBuffer > 0 ? '#15803d' : '#b91c1c'}">${availableBuffer.toLocaleString()} beds</strong></div>
+              <div style="font-size: 10.5px; color: #64748b; border-top: 1px solid #e2e8f0; margin-top: 5px; padding-top: 4px;">
+                <b>Sphere Humanitarian Norms:</b> Beds: ${s.beds} &bull; Potable Water: ${s.water_liters.toLocaleString()}L &bull; Toilets: ${s.toilets_count}
               </div>
             </div>
           </div>
@@ -655,10 +642,11 @@ export default function TacticalMap({
   return (
     <div className="gov-card" style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
       {/* 1. DEDICATED UNIFIED GIS COMMAND TOOLBAR */}
+      {/* 1. OFFICIAL MAP TOOLBAR */}
       <div style={{
-        background: '#07192f',
-        borderBottom: '1px solid #1e3a5f',
-        padding: '7px 12px',
+        background: '#f8fafc',
+        borderBottom: '1px solid #cbd5e1',
+        padding: '6px 12px',
         display: 'flex',
         flexWrap: 'wrap',
         alignItems: 'center',
@@ -666,7 +654,7 @@ export default function TacticalMap({
         gap: '8px',
         zIndex: 10
       }}>
-        {/* Left: Sector Jurisdiction Dropdown covering All 36 States & UTs */}
+        {/* Left: Sector Jurisdiction & Geolocation */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
           {/* Quick Active Storm Shortcut Button */}
           <button
@@ -675,47 +663,46 @@ export default function TacticalMap({
               display: 'flex',
               alignItems: 'center',
               gap: '5px',
-              padding: '4px 10px',
-              borderRadius: '4px',
-              border: currentSector === 'cyclone_arnab' ? '1.5px solid #ef4444' : '1px solid rgba(239, 68, 68, 0.6)',
-              background: currentSector === 'cyclone_arnab' ? 'linear-gradient(135deg, #991b1b, #dc2626)' : 'rgba(220, 38, 38, 0.22)',
-              color: '#ffffff',
+              padding: '4px 8px',
+              borderRadius: '3px',
+              border: currentSector === 'cyclone_arnab' ? '1.5px solid #b91c1c' : '1px solid #fca5a5',
+              background: currentSector === 'cyclone_arnab' ? '#b91c1c' : '#fef2f2',
+              color: currentSector === 'cyclone_arnab' ? '#ffffff' : '#991b1b',
               fontSize: '11px',
-              fontWeight: '800',
-              cursor: 'pointer',
-              boxShadow: currentSector === 'cyclone_arnab' ? '0 0 10px rgba(239, 68, 68, 0.6)' : 'none'
+              fontWeight: '700',
+              cursor: 'pointer'
             }}
             title="Focus map on Active Cyclone Arnab / Kalingapatnam landfall corridor"
           >
-            <span style={{ fontSize: '13px' }}>🌀</span>
+            <span>🌀</span>
             <span>Storm Arnab (AP/Odisha)</span>
-            <span style={{ fontSize: '8.5px', background: '#dc2626', padding: '1px 4px', borderRadius: '3px', fontWeight: 'bold' }}>
+            <span style={{ fontSize: '9px', background: currentSector === 'cyclone_arnab' ? '#7f1d1d' : '#fee2e2', padding: '1px 4px', borderRadius: '2px', fontWeight: 'bold' }}>
               991 hPa
             </span>
           </button>
 
-          <span style={{ fontSize: '11px', color: '#94a3b8', fontWeight: '700', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <Globe size={13} color="#38bdf8" />
+          <span style={{ fontSize: '11px', color: '#475569', fontWeight: '700', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <Globe size={13} color="#0b2545" />
             Sector:
           </span>
           <select
             value={currentSector}
             onChange={e => onSectorChange && onSectorChange(e.target.value)}
             style={{
-              background: '#0d2847',
-              color: '#ffffff',
-              border: '1px solid #3b82f6',
-              borderRadius: '4px',
+              background: '#ffffff',
+              color: '#0f172a',
+              border: '1px solid #cbd5e1',
+              borderRadius: '3px',
               padding: '4px 8px',
-              fontSize: '11.5px',
+              fontSize: '11px',
               fontWeight: '600',
               outline: 'none',
               cursor: 'pointer',
-              maxWidth: '300px'
+              maxWidth: '260px'
             }}
           >
             <option value="all_india">🇮🇳 All-India Multi-Hazard Overview (36 States &amp; UTs)</option>
-            <option value="cyclone_arnab">🌀 ACTIVE STORM ARNAB: Kalingapatnam / AP &amp; Odisha Landfall (991 hPa / 76 km/h)</option>
+            <option value="cyclone_arnab">🌀 ACTIVE STORM ARNAB: Kalingapatnam / AP &amp; Odisha Landfall</option>
             <optgroup label="🏔️ Himalayan &amp; Hill States (10 States/UTs)">
               {OPERATIONAL_SECTORS.filter(s => s.category === 'Himalayan & Hill States').map(s => (
                 <option key={s.id} value={s.id}>{s.label}</option>
@@ -749,18 +736,18 @@ export default function TacticalMap({
                 display: 'flex',
                 alignItems: 'center',
                 gap: '4px',
-                background: '#1e3a5f',
-                color: '#38bdf8',
-                border: '1px solid #3b82f6',
-                borderRadius: '4px',
-                padding: '4px 8px',
-                fontSize: '11px',
-                fontWeight: '700',
+                background: '#ffffff',
+                color: '#0b2545',
+                border: '1px solid #cbd5e1',
+                borderRadius: '3px',
+                padding: '4px 7px',
+                fontSize: '10.5px',
+                fontWeight: '600',
                 cursor: 'pointer'
               }}
               title="Reset view to Pan-India Overview"
             >
-              <span>🇮🇳 All-India Map</span>
+              <span>🇮🇳 All-India</span>
             </button>
           )}
 
@@ -771,88 +758,58 @@ export default function TacticalMap({
                 display: 'flex',
                 alignItems: 'center',
                 gap: '4px',
-                background: '#071526',
-                color: '#38bdf8',
-                border: '1px solid #1e40af',
-                borderRadius: '4px',
-                padding: '4px 8px',
-                fontSize: '11px',
+                background: '#ffffff',
+                color: '#0b2545',
+                border: '1px solid #cbd5e1',
+                borderRadius: '3px',
+                padding: '4px 7px',
+                fontSize: '10.5px',
                 fontWeight: '600',
                 cursor: 'pointer'
               }}
               title="Fly to your real-time GPS location and get live weather"
             >
-              <span>📍</span>
-              <span>My Location</span>
+              <span>📍 My Location</span>
             </button>
           )}
         </div>
 
-        {/* Center: Live Doppler Satellite Radar Weather Toggle & 3D Terrain DEM Inspector */}
+        {/* Center: Live Doppler Satellite Radar Weather Toggle */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           <button
             onClick={toggleRadar}
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '6px',
-              background: isRadarActive ? 'rgba(2, 132, 199, 0.25)' : '#071526',
-              border: isRadarActive ? '1px solid #38bdf8' : '1px solid #1e3a5f',
-              color: isRadarActive ? '#38bdf8' : '#94a3b8',
+              gap: '5px',
+              background: isRadarActive ? '#eff6ff' : '#ffffff',
+              border: isRadarActive ? '1px solid #3b82f6' : '1px solid #cbd5e1',
+              color: isRadarActive ? '#1d4ed8' : '#475569',
               padding: '4px 8px',
-              borderRadius: '4px',
-              fontSize: '11px',
+              borderRadius: '3px',
+              fontSize: '10.5px',
               fontWeight: '700',
-              cursor: 'pointer',
-              transition: 'all 0.15s ease'
+              cursor: 'pointer'
             }}
-            title="Toggle Regional Doppler Weather Clouds (Active at national/state scale)"
+            title="Toggle Regional Doppler Weather Clouds"
           >
             <span style={{
-              width: '7px',
-              height: '7px',
+              width: '6px',
+              height: '6px',
               borderRadius: '50%',
-              background: isRadarActive ? '#22c55e' : '#64748b',
-              boxShadow: isRadarActive ? '0 0 6px #22c55e' : 'none',
+              background: isRadarActive ? '#15803d' : '#94a3b8',
               display: 'inline-block'
             }}></span>
-            <span>🛰️ Doppler Radar: {isRadarActive ? 'ON' : 'OFF'}</span>
+            <span>Doppler Radar: {isRadarActive ? 'ON' : 'OFF'}</span>
             {radarTimestamp && isRadarActive && (
-              <span style={{ fontSize: '9px', color: '#93c5fd', opacity: 0.9 }}>({radarTimestamp})</span>
+              <span style={{ fontSize: '9px', color: '#64748b' }}>({radarTimestamp})</span>
             )}
-          </button>
-
-          {/* 3D Digital Elevation Model (DEM) & Inundation Inspector Trigger */}
-          <button
-            onClick={() => {
-              const targetHab = habitations.find(h => h.zone === 'RED') || habitations[0];
-              if (onOpen3DInspector) onOpen3DInspector(targetHab);
-            }}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '5px',
-              background: 'linear-gradient(90deg, #065f46, #047857)',
-              color: '#ffffff',
-              border: '1px solid #10b981',
-              padding: '4px 10px',
-              borderRadius: '4px',
-              fontSize: '11px',
-              fontWeight: '800',
-              cursor: 'pointer',
-              boxShadow: '0 2px 6px rgba(0,0,0,0.4)',
-              transition: 'all 0.15s ease'
-            }}
-            title="Open Interactive 3D Digital Elevation Model (DEM) & Flood Inundation Simulator"
-          >
-            <Mountain size={13} />
-            <span>🏔️ 3D Terrain DEM</span>
           </button>
         </div>
 
-        {/* Center-Right: Simple Institutional Layer Controls (SIH26191 Section 7 Mandate) */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px', color: '#cbd5e1' }}>
-          <span style={{ fontSize: '10px', color: '#94a3b8', fontWeight: '700' }}>LAYERS:</span>
+        {/* Center-Right: Simple Institutional Layer Controls (SIH26191) */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px', color: '#334155' }}>
+          <span style={{ fontSize: '10px', color: '#64748b', fontWeight: '700' }}>LAYERS:</span>
           <label style={{ display: 'flex', alignItems: 'center', gap: '3px', cursor: 'pointer' }}>
             <input
               type="checkbox"
@@ -887,24 +844,23 @@ export default function TacticalMap({
           </label>
         </div>
 
-        {/* Right: High-Resolution Zero-Watermark Base Map Layer Switcher */}
+        {/* Right: Base Map Switcher */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-          <span style={{ fontSize: '10.5px', color: '#94a3b8', fontWeight: '600', marginRight: '2px' }}>
-            Base:
+          <span style={{ fontSize: '10px', color: '#64748b', fontWeight: '700', marginRight: '2px' }}>
+            BASE:
           </span>
           <button
             onClick={() => switchBaseLayer('esri_streets')}
             style={{
               padding: '3px 7px',
-              fontSize: '10.5px',
+              fontSize: '10px',
               fontWeight: '600',
               borderRadius: '3px',
-              border: 'none',
+              border: activeBaseLayer === 'esri_streets' ? '1px solid #0b2545' : '1px solid #cbd5e1',
               cursor: 'pointer',
-              background: activeBaseLayer === 'esri_streets' ? '#1d4ed8' : '#0a1d35',
-              color: activeBaseLayer === 'esri_streets' ? 'white' : '#94a3b8'
+              background: activeBaseLayer === 'esri_streets' ? '#0b2545' : '#ffffff',
+              color: activeBaseLayer === 'esri_streets' ? '#ffffff' : '#475569'
             }}
-            title="Official High-Resolution Esri World Street GIS Map (Zero Watermarks)"
           >
             GIS Map
           </button>
@@ -912,15 +868,14 @@ export default function TacticalMap({
             onClick={() => switchBaseLayer('satellite')}
             style={{
               padding: '3px 7px',
-              fontSize: '10.5px',
+              fontSize: '10px',
               fontWeight: '600',
               borderRadius: '3px',
-              border: 'none',
+              border: activeBaseLayer === 'satellite' ? '1px solid #0b2545' : '1px solid #cbd5e1',
               cursor: 'pointer',
-              background: activeBaseLayer === 'satellite' ? '#1d4ed8' : '#0a1d35',
-              color: activeBaseLayer === 'satellite' ? 'white' : '#94a3b8'
+              background: activeBaseLayer === 'satellite' ? '#0b2545' : '#ffffff',
+              color: activeBaseLayer === 'satellite' ? '#ffffff' : '#475569'
             }}
-            title="High-Resolution Esri World Satellite Imagery (Zero Watermarks)"
           >
             Satellite
           </button>
@@ -928,72 +883,28 @@ export default function TacticalMap({
             onClick={() => switchBaseLayer('topo_3d')}
             style={{
               padding: '3px 7px',
-              fontSize: '10.5px',
+              fontSize: '10px',
               fontWeight: '600',
               borderRadius: '3px',
-              border: 'none',
+              border: activeBaseLayer === 'topo_3d' ? '1px solid #0b2545' : '1px solid #cbd5e1',
               cursor: 'pointer',
-              background: activeBaseLayer === 'topo_3d' ? '#1d4ed8' : '#0a1d35',
-              color: activeBaseLayer === 'topo_3d' ? 'white' : '#94a3b8'
+              background: activeBaseLayer === 'topo_3d' ? '#0b2545' : '#ffffff',
+              color: activeBaseLayer === 'topo_3d' ? '#ffffff' : '#475569'
             }}
-            title="3D Topographic Terrain Contours & Elevation Shading (OpenTopoMap)"
           >
-            3D Topo
-          </button>
-          <button
-            onClick={() => switchBaseLayer('standard')}
-            style={{
-              padding: '3px 7px',
-              fontSize: '10.5px',
-              fontWeight: '600',
-              borderRadius: '3px',
-              border: 'none',
-              cursor: 'pointer',
-              background: activeBaseLayer === 'standard' ? '#1d4ed8' : '#0a1d35',
-              color: activeBaseLayer === 'standard' ? 'white' : '#94a3b8'
-            }}
-            title="OpenStreetMap Standard (Zero Watermarks)"
-          >
-            OSM
-          </button>
-
-          {/* 3D Perspective Tilt on Leaflet Map */}
-          <button
-            onClick={() => {
-              setIsPerspective3D(!isPerspective3D);
-              setTimeout(() => {
-                if (mapInstanceRef.current) mapInstanceRef.current.invalidateSize();
-              }, 200);
-            }}
-            style={{
-              padding: '3px 8px',
-              fontSize: '10.5px',
-              fontWeight: '700',
-              borderRadius: '3px',
-              border: isPerspective3D ? '1px solid #38bdf8' : '1px solid #1e3a5f',
-              cursor: 'pointer',
-              background: isPerspective3D ? 'rgba(2, 132, 199, 0.4)' : '#07172c',
-              color: isPerspective3D ? '#38bdf8' : '#cbd5e1',
-              marginLeft: '4px'
-            }}
-            title="Toggle 3D Perspective Tilt on Tactical Map"
-          >
-            {isPerspective3D ? '📐 2D View' : '🏔️ 3D Tilt'}
+            Topo
           </button>
         </div>
       </div>
 
       {/* 2. LEAFLET MAP CANVAS */}
-      <div style={{ position: 'relative', flex: 1, minHeight: '520px', overflow: 'hidden' }}>
+      <div style={{ position: 'relative', flex: 1, minHeight: '540px', overflow: 'hidden' }}>
         <div
           ref={mapContainerRef}
           style={{
             width: '100%',
             height: '100%',
-            minHeight: '520px',
-            transform: isPerspective3D ? 'perspective(1000px) rotateX(25deg)' : 'none',
-            transformOrigin: '50% 80%',
-            transition: 'transform 0.4s ease'
+            minHeight: '540px'
           }}
         />
 
@@ -1003,48 +914,44 @@ export default function TacticalMap({
           bottom: '12px',
           left: '12px',
           zIndex: 1000,
-          background: 'rgba(7, 25, 47, 0.95)',
-          border: '1px solid #1e3a5f',
-          borderRadius: '5px',
+          background: 'rgba(255, 255, 255, 0.95)',
+          border: '1px solid #cbd5e1',
+          borderRadius: '4px',
           padding: '8px 10px',
           fontSize: '10.5px',
-          color: '#f8fafc',
-          boxShadow: '0 4px 15px rgba(0,0,0,0.6)',
-          maxWidth: '240px'
+          color: '#0f172a',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+          maxWidth: '220px'
         }}>
           <div
             onClick={() => setIsLegendOpen(!isLegendOpen)}
-            style={{ fontWeight: 'bold', color: '#94a3b8', textTransform: 'uppercase', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}
+            style={{ fontWeight: 'bold', color: '#475569', textTransform: 'uppercase', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}
           >
             <span>GIS Map Legend</span>
-            <span style={{ fontSize: '9px', color: '#60a5fa' }}>{isLegendOpen ? '▲ Hide' : '▼ Show'}</span>
+            <span style={{ fontSize: '9px', color: '#0b2545' }}>{isLegendOpen ? '▲' : '▼'}</span>
           </div>
 
           {isLegendOpen && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '6px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{ fontSize: '11px' }}>🚨/⚠️</span>
-                <span>National Disaster Hotspots</span>
+                <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#b91c1c' }}></span>
+                <span>Critical Red Zone (Evacuate)</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#dc2626' }}></span>
-                <span>Red Zone (Evacuate 0-48h)</span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#ea580c' }}></span>
-                <span>Orange Zone (Standby)</span>
+                <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#c2410c' }}></span>
+                <span>Orange Alert Zone (Standby)</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#15803d' }}></span>
-                <span>Green Zone (Stable)</span>
+                <span>Green Safe Zone (Buffer)</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{ width: '8px', height: '8px', background: '#0284c7', borderRadius: '2px' }}></span>
-                <span>🏕️ Relief Shelters (% Capacity)</span>
+                <span style={{ width: '8px', height: '8px', background: '#0b2545', borderRadius: '2px' }}></span>
+                <span>Relief Shelters</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{ width: '12px', height: '2px', borderTop: '2px dashed #2563eb' }}></span>
-                <span>Convoy Corridors (Zero-Overflow)</span>
+                <span style={{ width: '12px', height: '2px', borderTop: '2px dashed #0b2545' }}></span>
+                <span>Evacuation Corridors</span>
               </div>
             </div>
           )}

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { AlertTriangle, Crosshair, Radar, X, ChevronDown, ChevronUp } from 'lucide-react';
+import { AlertTriangle, Crosshair, Radar, X } from 'lucide-react';
 
 export default function ActiveStormBanner({
   onSelectStormSector,
@@ -20,7 +20,7 @@ export default function ActiveStormBanner({
 
   if (isDismissed) {
     return (
-      <div style={{ margin: '0 20px 6px 20px', display: 'flex', justifyContent: 'flex-end' }}>
+      <div style={{ margin: '0 16px 6px 16px', display: 'flex', justifyContent: 'flex-end' }}>
         <button
           onClick={() => setIsDismissed(false)}
           className="badge-red"
@@ -41,11 +41,11 @@ export default function ActiveStormBanner({
 
   return (
     <div style={{
-      margin: '0 20px 10px 20px',
-      background: 'rgba(220, 38, 38, 0.08)',
-      border: '1px solid rgba(239, 68, 68, 0.4)',
+      margin: '0 16px 8px 16px',
+      background: '#fef2f2',
+      border: '1px solid #fca5a5',
       borderRadius: '4px',
-      padding: '8px 14px',
+      padding: '7px 12px',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-between',
@@ -53,12 +53,12 @@ export default function ActiveStormBanner({
       flexWrap: 'wrap'
     }}>
       {/* Left: Hazard Advisory Description */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
         <div style={{
-          background: '#dc2626',
+          background: '#b91c1c',
           color: '#ffffff',
           borderRadius: '3px',
-          padding: '3px 6px',
+          padding: '2px 6px',
           fontSize: '10px',
           fontWeight: '800',
           letterSpacing: '0.4px',
@@ -66,37 +66,37 @@ export default function ActiveStormBanner({
           alignItems: 'center',
           gap: '4px'
         }}>
-          <AlertTriangle size={12} />
+          <AlertTriangle size={11} />
           <span>IMD ADVISORY</span>
         </div>
 
         <div>
-          <div style={{ fontSize: '12px', fontWeight: '700', color: '#ffffff' }}>
+          <div style={{ fontSize: '12px', fontWeight: '700', color: '#0f172a' }}>
             {stormName} &bull; Landfall &amp; Coastal Surge Sector Active
           </div>
-          <div style={{ fontSize: '10.5px', color: '#cbd5e1', marginTop: '1px' }}>
-            Central MSLP: <b>{pressureVal} hPa</b> &bull; Sustained Wind: <b>{windsVal} km/h</b> (Gusts: <b>{gustsVal} km/h</b>) &bull; Sea State: {seaCondition}
+          <div style={{ fontSize: '10.5px', color: '#475569', marginTop: '1px' }}>
+            Central MSLP: <strong style={{ color: '#0f172a' }}>{pressureVal} hPa</strong> &bull; Sustained Wind: <strong style={{ color: '#0f172a' }}>{windsVal} km/h</strong> (Gusts: <strong style={{ color: '#b91c1c' }}>{gustsVal} km/h</strong>) &bull; Sea State: {seaCondition}
           </div>
         </div>
       </div>
 
       {/* Right: Operational GIS Shortcuts */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
         {!isFocusingStorm && onSelectStormSector && (
           <button
             onClick={() => onSelectStormSector('cyclone_arnab')}
             style={{
               background: '#b91c1c',
               color: '#ffffff',
-              border: '1px solid #ef4444',
+              border: 'none',
               borderRadius: '3px',
-              padding: '4px 9px',
+              padding: '4px 8px',
               fontSize: '10.5px',
               fontWeight: '700',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              gap: '5px'
+              gap: '4px'
             }}
           >
             <Crosshair size={11} />
@@ -107,17 +107,17 @@ export default function ActiveStormBanner({
         <button
           onClick={onToggleRadar}
           style={{
-            background: isRadarActive ? '#15803d' : '#0f2744',
+            background: isRadarActive ? '#15803d' : '#0b2545',
             color: '#ffffff',
-            border: isRadarActive ? '1px solid #22c55e' : '1px solid #1e3a5f',
+            border: 'none',
             borderRadius: '3px',
-            padding: '4px 9px',
+            padding: '4px 8px',
             fontSize: '10.5px',
             fontWeight: '600',
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
-            gap: '5px'
+            gap: '4px'
           }}
         >
           <Radar size={11} />
@@ -129,7 +129,7 @@ export default function ActiveStormBanner({
           style={{
             background: 'transparent',
             border: 'none',
-            color: '#94a3b8',
+            color: '#64748b',
             cursor: 'pointer',
             padding: '2px',
             display: 'flex',

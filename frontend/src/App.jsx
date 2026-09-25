@@ -301,14 +301,14 @@ export default function App() {
         activeTab={activeTab}
         onTabChange={setActiveTab}
         onOpenManifest={() => setIsOpOrdOpen(true)}
-        onOpenAIAssistant={() => setIsAIAssistantOpen(true)}
-        onOpenTelemetry={() => setIsTelemetryOpen(true)}
-        onOpenGISUpload={() => setIsGISUploadOpen(true)}
-        onOpenAudit={() => setIsAuditOpen(true)}
-        solverStatus={solverStats.status}
         horizon={horizon}
         onHorizonChange={setHorizon}
+        currentSector={currentSector}
+        onSectorChange={handleSectorChange}
+        onOpenTelemetry={() => setIsTelemetryOpen(true)}
+        onOpenAudit={() => setIsAuditOpen(true)}
         operationalMode={operationalMode}
+        liveWeather={liveWeather}
       />
 
       {/* Official In-App Emergency Broadcast Toast */}
@@ -339,36 +339,18 @@ export default function App() {
         horizon={horizon}
       />
 
-      {/* Tab 1: Integrated GIS Command */}
+      {/* Tab 1: Integrated GIS Command (Clean 2-Column Wide Workspace) */}
       {activeTab === 'gis' && (
         <main style={{
           display: 'grid',
-          gridTemplateColumns: '310px 1fr 340px',
+          gridTemplateColumns: 'minmax(0, 1fr) 350px',
           gap: '12px',
           margin: '0 16px 16px 16px',
           flex: 1,
-          minHeight: '580px'
+          minHeight: '600px'
         }}>
-          {/* Left Column: IMD Early Warning Simulator & Telemetry */}
-          <aside>
-            <SimulationControls
-              simParams={simParams}
-              onParamChange={handleParamChange}
-              onTriggerOrangeAlert={handleTriggerOrangeAlert}
-              onTriggerExtremeCloudburst={handleTriggerExtremeCloudburst}
-              onTriggerBridgeWashout={handleTriggerBridgeWashout}
-              onResetSimulation={handleResetSimulation}
-              isExtreme={isExtreme}
-              currentSector={currentSector}
-              liveWeather={liveWeather}
-              operationalMode={operationalMode}
-              onModeChange={setOperationalMode}
-              onDetectLocation={handleDetectLocation}
-            />
-          </aside>
-
-          {/* Center Column: High-Speed Tactical Map with Live Doppler Radar */}
-          <section style={{ height: '100%', minHeight: '560px' }}>
+          {/* Main Area: High-Visibility Tactical GIS Command Map */}
+          <section style={{ height: '100%', minHeight: '580px' }}>
             <TacticalMap
               habitations={habitations}
               shelters={shelters}
@@ -385,7 +367,7 @@ export default function App() {
             />
           </section>
 
-          {/* Right Column: Active Relocation Convoys & Shelter Utilization */}
+          {/* Right Column: Evacuation Convoys & Shelter Carrying Capacity */}
           <aside>
             <RelocationPanel
               evacuationPlan={evacuationPlan}
@@ -395,6 +377,7 @@ export default function App() {
               currentSector={currentSector}
               onSectorChange={handleSectorChange}
               onInspectHabitation={h => setSelectedHabitationForXAI(h)}
+              onOpenRelocationPlan={() => setIsOpOrdOpen(true)}
             />
           </aside>
         </main>
@@ -419,14 +402,34 @@ export default function App() {
         </main>
       )}
 
+      {/* Tab 4: Contingency Scenario Modeling (What-If Sandbox) */}
+      {activeTab === 'contingency' && (
+        <main style={{ flex: 1, padding: '0 16px 20px 16px' }}>
+          <SimulationControls
+            simParams={simParams}
+            onParamChange={handleParamChange}
+            onTriggerOrangeAlert={handleTriggerOrangeAlert}
+            onTriggerExtremeCloudburst={handleTriggerExtremeCloudburst}
+            onTriggerBridgeWashout={handleTriggerBridgeWashout}
+            onResetSimulation={handleResetSimulation}
+            isExtreme={isExtreme}
+            currentSector={currentSector}
+            liveWeather={liveWeather}
+            operationalMode={operationalMode}
+            onModeChange={setOperationalMode}
+            onDetectLocation={handleDetectLocation}
+          />
+        </main>
+      )}
+
       {/* Official Government Footer */}
       <footer style={{
-        background: '#07192f',
-        borderTop: '1px solid #1e3a5f',
-        padding: '14px 24px',
+        background: '#0b2545',
+        borderTop: '1px solid #071729',
+        padding: '12px 24px',
         marginTop: 'auto',
         fontSize: '11px',
-        color: '#94a3b8',
+        color: '#cbd5e1',
         display: 'flex',
         flexWrap: 'wrap',
         alignItems: 'center',
@@ -434,15 +437,14 @@ export default function App() {
         gap: '10px'
       }}>
         <div>
-          <strong>ResQGrid Platform &bull; National Disaster Response Force (NDRF) &bull; Ministry of Home Affairs, Government of India</strong>
-          <div style={{ fontSize: '10px', color: '#64748b', marginTop: '2px' }}>
-            Operated in accordance with Section 34 of the Disaster Management Act, 2005 &bull; Designed by Team 16: BharatBytes (SIH 2026 - SIH26191)
+          <strong style={{ color: '#ffffff' }}>ResQGrid Platform &bull; National Disaster Response Force (NDRF) &bull; Ministry of Home Affairs, Government of India</strong>
+          <div style={{ fontSize: '10px', color: '#94a3b8', marginTop: '2px' }}>
+            Operated in accordance with Section 34 of the Disaster Management Act, 2005 &bull; Problem Statement SIH26191
           </div>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px', fontSize: '10.5px' }}>
           <span>National Informatics Centre (NIC) Design Standards</span>
-          <span style={{ color: '#38bdf8' }}>Open-Meteo AWS Telemetry Active</span>
-          <span style={{ color: '#34d399' }}>MILP Solver: 5.4ms Optimal</span>
+          <span style={{ color: '#86efac', fontWeight: '600' }}>● IMD AWS Telemetry Active</span>
         </div>
       </footer>
 
