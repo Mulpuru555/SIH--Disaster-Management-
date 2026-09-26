@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
-import { Mountain, Globe } from 'lucide-react';
-import { OPERATIONAL_SECTORS, NATIONAL_HOTSPOTS } from '../services/localEngine';
+import { Mountain, Globe, ShieldCheck } from 'lucide-react';
+import { OPERATIONAL_SECTORS, NATIONAL_HOTSPOTS, getNationalMonitoringNodes } from '../services/localEngine';
 
 export default function TacticalMap({
   habitations,
@@ -14,6 +14,8 @@ export default function TacticalMap({
   onSelectHabitation,
   onOpen3DInspector,
   liveWeather,
+  operationalMode = 'LIVE',
+  simParams = {},
   isRadarActive: externalIsRadarActive,
   onToggleRadar: externalOnToggleRadar,
   onDetectLocation
@@ -222,21 +224,27 @@ export default function TacticalMap({
     layers.routes.clearLayers();
     layers.polygons.clearLayers();
 
-    // 1. National Alert Hotspots (Clean, non-clumping circular indicators for national overview)
+    // 1. National Alert Hotspots / Baseline Surveillance Nodes
     if (currentSector === 'all_india') {
-      NATIONAL_HOTSPOTS.forEach(spot => {
+      const nationalNodes = getNationalMonitoringNodes(operationalMode, simParams, liveWeather);
+
+      nationalNodes.forEach(spot => {
         const isRed = spot.alert_level === 'RED';
-        const pulseColor = isRed ? '#b91c1c' : '#c2410c';
+        const isOrange = spot.alert_level === 'ORANGE';
+        const isAlert = isRed || isOrange;
+
+        const pulseColor = isRed ? '#b91c1c' : isOrange ? '#c2410c' : '#059669';
+        const fillColor = isRed ? '#dc2626' : isOrange ? '#ea580c' : '#10b981';
 
         const spotMarker = L.circleMarker([spot.lat, spot.lng], {
-          radius: isRed ? 7 : 5.5,
-          color: '#ffffff',
-          fillColor: pulseColor,
-          fillOpacity: 0.9,
-          weight: 2
+          radius: isRed ? 7 : isOrange ? 6 : 4,
+          color: isAlert ? '#ffffff' : '#047857',
+          fillColor: fillColor,
+          fillOpacity: isAlert ? 0.9 : 0.65,
+          weight: isAlert ? 2 : 1
         });
 
-        spotMarker.bindTooltip(`<b>${spot.district}</b> &bull; ${spot.alert_level} ALERT`, {
+        spotMarker.bindTooltip(`<b>${spot.district}</b> &bull; ${spot.alert_badge || spot.alert_level}`, {
           direction: 'top',
           offset: [0, -6]
         });
@@ -248,15 +256,15 @@ export default function TacticalMap({
                 <strong style="color: #0f172a; font-size: 13px;">${spot.district}</strong>
                 <div style="font-size: 10.5px; color: #64748b;">${spot.state}</div>
               </div>
-              <span style="background: ${pulseColor}; color: white; padding: 2px 6px; border-radius: 3px; font-weight: bold; font-size: 10px;">${spot.alert_level} ALERT</span>
+              <span style="background: ${pulseColor}; color: white; padding: 2px 6px; border-radius: 3px; font-weight: bold; font-size: 10px;">${spot.alert_badge || spot.alert_level}</span>
             </div>
 
             <div style="color: #334155; display: flex; flex-direction: column; gap: 3px;">
-              <div>&bull; <b>Primary Threat:</b> <span style="color: #b91c1c; font-weight: 600;">${spot.hazard_type}</span></div>
-              <div>&bull; <b>Precipitation / Runoff:</b> <strong style="color: #0b2545;">${spot.rainfall_rate}</strong></div>
+              <div>&bull; <b>Surveillance Scope:</b> <span style="font-weight: 600;">${spot.hazard_type}</span></div>
+              <div>&bull; <b>Precipitation Telemetry:</b> <strong style="color: #0b2545;">${spot.rainfall_rate}</strong></div>
               <div>&bull; <b>River Basin / Catchment:</b> ${spot.river_basin}</div>
-              <div>&bull; <b>At-Risk Population:</b> ${spot.population_at_risk.toLocaleString()} citizens (${spot.habitations_at_risk} habitations)</div>
-              <div style="margin-top: 4px; padding: 4px 6px; background: #f0fdf4; border-radius: 3px; font-size: 10.5px; color: #166534;">
+              <div>&bull; <b>At-Risk Habitations:</b> ${spot.habitations_at_risk > 0 ? `${spot.habitations_at_risk} habitations (${spot.population_at_risk.toLocaleString()} citizens)` : '0 (Baseline Nominal)'}</div>
+              <div style="margin-top: 4px; padding: 4px 6px; background: ${isAlert ? '#fef2f2' : '#f0fdf4'}; border-radius: 3px; font-size: 10.5px; color: ${isAlert ? '#991b1b' : '#166534'};">
                 &bull; <b>Status:</b> ${spot.status}
               </div>
             </div>
@@ -596,7 +604,7 @@ export default function TacticalMap({
       });
     }
 
-  }, [habitations, shelters, resettlementSites, evacuationPlan, horizon, currentSector]);
+  }, [habitations, shelters, resettlementSites, evacuationPlan, horizon, currentSector, operationalMode, simParams, liveWeather]);
 
   // Synchronize Layer Group Visibility with Layer Checkboxes (SIH26191 Section 7 Mandate)
   useEffect(() => {
@@ -903,6 +911,32 @@ export default function TacticalMap({
           }}
         />
 
+        {/* National Surveillance Status Pill for All-India View */}
+        {currentSector === 'all_india' && (
+          <div style={{
+            position: 'absolute',
+            top: '12px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 1000,
+            background: 'rgba(255, 255, 255, 0.95)',
+            border: '1px solid #cbd5e1',
+            borderRadius: '4px',
+            padding: '6px 14px',
+            fontSize: '11px',
+            fontWeight: '600',
+            color: '#0f172a',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            pointerEvents: 'none'
+          }}>
+            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#16a34a', display: 'inline-block' }}></span>
+            <span>NATIONAL OVERVIEW: 36 STATES &amp; UTs MONITORED &bull; NORMAL BASELINE SURVEILLANCE ACTIVE</span>
+          </div>
+        )}
+
         {/* 3. COLLAPSIBLE MAP LEGEND (Bottom Left) */}
         <div style={{
           position: 'absolute',
@@ -928,26 +962,45 @@ export default function TacticalMap({
 
           {isLegendOpen && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '6px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#b91c1c' }}></span>
-                <span>Critical Red Zone (Evacuate)</span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#c2410c' }}></span>
-                <span>Orange Alert Zone (Standby)</span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#15803d' }}></span>
-                <span>Green Safe Zone (Buffer)</span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{ width: '8px', height: '8px', background: '#0b2545', borderRadius: '2px' }}></span>
-                <span>Relief Shelters</span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{ width: '12px', height: '2px', borderTop: '2px dashed #0b2545' }}></span>
-                <span>Evacuation Corridors</span>
-              </div>
+              {currentSector === 'all_india' ? (
+                <>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10b981' }}></span>
+                    <span>State Surveillance Node (Normal)</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#c2410c' }}></span>
+                    <span>Hazard Watch (Standby)</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#b91c1c' }}></span>
+                    <span>Severe Hazard Warning Node</span>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#b91c1c' }}></span>
+                    <span>Critical Red Zone (Evacuate)</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#c2410c' }}></span>
+                    <span>Orange Alert Zone (Standby)</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#15803d' }}></span>
+                    <span>Green Safe Zone (Buffer)</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ width: '8px', height: '8px', background: '#0b2545', borderRadius: '2px' }}></span>
+                    <span>Relief Shelters</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ width: '12px', height: '2px', borderTop: '2px dashed #0b2545' }}></span>
+                    <span>Evacuation Corridors</span>
+                  </div>
+                </>
+              )}
             </div>
           )}
         </div>

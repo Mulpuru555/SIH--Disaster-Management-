@@ -39,6 +39,7 @@ export default function App() {
   const [currentSector, setCurrentSector] = useState('all_india'); // 'all_india' or any of 36 states/UTs
   const [horizon, setHorizon] = useState('immediate'); // 'immediate', 'short_term', 'medium_term'
   const [operationalMode, setOperationalMode] = useState('LIVE'); // 'LIVE' (Real-Time Sensor Telemetry) | 'SIMULATION' (What-If Sandbox)
+  const [userRole, setUserRole] = useState('DDMA'); // 'ADMIN', 'NDMA', 'SDMA', 'DDMA', 'NDRF', 'DISTRICT_OFFICER', 'FIELD_OFFICER', 'READ_ONLY'
   const [isRadarActive, setIsRadarActive] = useState(false); // Live Doppler Satellite Radar state
 
   const [simParams, setSimParams] = useState({
@@ -316,6 +317,8 @@ export default function App() {
         onOpenAudit={() => setIsAuditOpen(true)}
         operationalMode={operationalMode}
         liveWeather={liveWeather}
+        userRole={userRole}
+        onRoleChange={setUserRole}
       />
 
       {/* Official In-App Emergency Broadcast Toast */}
@@ -368,6 +371,8 @@ export default function App() {
               onSectorChange={handleSectorChange}
               onSelectHabitation={h => setSelectedHabitationForXAI(h)}
               liveWeather={liveWeather}
+              operationalMode={operationalMode}
+              simParams={simParams}
               isRadarActive={isRadarActive}
               onToggleRadar={() => setIsRadarActive(prev => !prev)}
               onDetectLocation={handleDetectLocation}
@@ -385,6 +390,9 @@ export default function App() {
               onSectorChange={handleSectorChange}
               onInspectHabitation={h => setSelectedHabitationForXAI(h)}
               onOpenRelocationPlan={() => setIsOpOrdOpen(true)}
+              operationalMode={operationalMode}
+              simParams={simParams}
+              liveWeather={liveWeather}
             />
           </aside>
         </main>
@@ -492,6 +500,7 @@ export default function App() {
             evacuationPlan={evacuationPlan}
             currentSector={currentSector}
             liveWeather={liveWeather}
+            userRole={userRole}
             onOpenRelocationPlan={() => setIsOpOrdOpen(true)}
           />
         </main>

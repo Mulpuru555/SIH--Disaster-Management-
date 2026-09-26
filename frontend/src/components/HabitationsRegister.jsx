@@ -126,6 +126,7 @@ export default function HabitationsRegister({ habitations, onSelectHabitation })
               <th>Factor of Safety (FS)</th>
               <th>Historical Recurrence</th>
               <th>Hazard Classification</th>
+              <th>Explainable Physical Risk Rationale (Why High-Risk?)</th>
               <th>Housing Structure</th>
               <th>Relocation Directive</th>
               <th style={{ textAlign: 'center' }}>Vulnerability Dossier</th>
@@ -203,6 +204,35 @@ export default function HabitationsRegister({ habitations, onSelectHabitation })
                         <ShieldCheck size={11} /> SAFE GREEN
                       </span>
                     )}
+                  </td>
+
+                  <td style={{ maxWidth: '280px' }}>
+                    <div style={{ fontSize: '11px', lineHeight: '1.4', color: '#1e293b' }}>
+                      {h.risk_rationale ? (
+                        h.risk_rationale
+                      ) : (
+                        (() => {
+                          const reasons = [];
+                          if (h.slope_degrees >= 25) reasons.push(`Slope ${h.slope_degrees.toFixed(1)}° > 25°`);
+                          if (h.factor_of_safety < 1.25) reasons.push(`Geotechnical instability (FS ${h.factor_of_safety.toFixed(2)} < 1.25)`);
+                          if (h.river_distance_m !== undefined && h.river_distance_m < 400) reasons.push(`River course buffer ${h.river_distance_m}m`);
+                          if (h.coastal_distance_m !== undefined && h.coastal_distance_m < 3500 && (h.elevation_m || 0) < 20) reasons.push(`Coastal inundation (${h.elevation_m || 0}m MSL)`);
+                          if (h.kutcha_houses && h.population && (h.kutcha_houses / h.population) > 0.20) {
+                            reasons.push(`Kutcha vulnerability (${Math.round((h.kutcha_houses / h.population) * 100)}%)`);
+                          }
+                          if (h.historical_disaster_count >= 3) reasons.push(`Historical recurrence (${h.historical_disaster_count} past events)`);
+                          
+                          if (reasons.length === 0) {
+                            return <span style={{ color: '#15803d' }}>Terrain stable • Outside active watercourse buffer • Low vulnerability</span>;
+                          }
+                          return (
+                            <span style={{ color: isRed ? '#991b1b' : isOrange ? '#9a3412' : '#334155', fontWeight: isRed ? '600' : 'normal' }}>
+                              {reasons.join(' • ')}
+                            </span>
+                          );
+                        })()
+                      )}
+                    </div>
                   </td>
 
                   <td>

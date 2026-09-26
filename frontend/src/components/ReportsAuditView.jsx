@@ -7,6 +7,7 @@ export default function ReportsAuditView({
   evacuationPlan,
   currentSector,
   liveWeather,
+  userRole = 'DDMA',
   onOpenRelocationPlan
 }) {
   const [officerName, setOfficerName] = useState('Dr. Rajesh Sharma, IAS');
@@ -197,10 +198,17 @@ export default function ReportsAuditView({
                 <div style={{ fontSize: '9.5px', color: '#475569' }}>{designation}</div>
                 <div style={{ fontSize: '9px', color: '#64748b', marginTop: '1px' }}>Ratified at {timeStr}</div>
               </div>
+            ) : userRole === 'READ_ONLY' ? (
+              <div style={{ textAlign: 'right', background: '#f8fafc', padding: '6px 12px', border: '1px solid #cbd5e1', borderRadius: '4px' }}>
+                <div style={{ fontSize: '11px', fontWeight: '700', color: '#64748b' }}>👁️ Read-Only Observer Mode</div>
+                <div style={{ fontSize: '10px', color: '#94a3b8', marginTop: '2px' }}>
+                  Statutory authorization under §34 DM Act requires DDMA / District Magistrate role.
+                </div>
+              </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'flex-end' }}>
                 <div style={{ fontSize: '11px', fontWeight: '700', color: '#0f172a' }}>{officerName}</div>
-                <div style={{ fontSize: '10px', color: '#475569' }}>{designation}</div>
+                <div style={{ fontSize: '10px', color: '#475569' }}>{designation} &bull; ({userRole} Authorized)</div>
                 <button
                   onClick={handleSignOff}
                   style={{

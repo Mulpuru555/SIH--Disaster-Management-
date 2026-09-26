@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Truck, Home, ShieldCheck, ChevronRight, Search, FileText } from 'lucide-react';
-import { NATIONAL_HOTSPOTS } from '../services/localEngine';
+import { Truck, Home, ShieldCheck, ChevronRight, Search, FileText, CheckCircle2 } from 'lucide-react';
+import { NATIONAL_HOTSPOTS, getNationalMonitoringNodes } from '../services/localEngine';
 
 export default function RelocationPanel({
   evacuationPlan,
@@ -10,13 +10,21 @@ export default function RelocationPanel({
   currentSector,
   onSectorChange,
   onInspectHabitation,
-  onOpenRelocationPlan
+  onOpenRelocationPlan,
+  operationalMode = 'LIVE',
+  simParams = {},
+  liveWeather = null
 }) {
   const isAllIndia = currentSector === 'all_india';
   const [stateSearch, setStateSearch] = useState('');
   const [stateFilter, setStateFilter] = useState('ALL');
 
-  const filteredSpots = NATIONAL_HOTSPOTS.filter(spot => {
+  const spots = getNationalMonitoringNodes(operationalMode, simParams, liveWeather);
+  const redCount = spots.filter(s => s.alert_level === 'RED').length;
+  const orangeCount = spots.filter(s => s.alert_level === 'ORANGE').length;
+  const normalCount = spots.filter(s => s.alert_level === 'NORMAL').length;
+
+  const filteredSpots = spots.filter(spot => {
     const matchesAlert = stateFilter === 'ALL' || spot.alert_level === stateFilter;
     const matchesSearch = spot.state.toLowerCase().includes(stateSearch.toLowerCase()) ||
                           spot.district.toLowerCase().includes(stateSearch.toLowerCase()) ||
@@ -43,7 +51,7 @@ export default function RelocationPanel({
           borderRadius: '3px',
           border: '1px solid #cbd5e1'
         }}>
-          {isAllIndia ? `${NATIONAL_HOTSPOTS.length} Monitored Sectors` : `${evacuationPlan.length} Active Corridors`}
+          {isAllIndia ? `${spots.length} Monitored Sectors` : `${evacuationPlan.length} Active Corridors`}
         </span>
       </div>
 
@@ -80,9 +88,10 @@ export default function RelocationPanel({
 
             <div style={{ display: 'flex', gap: '4px' }}>
               {[
-                { id: 'ALL', label: `All (${NATIONAL_HOTSPOTS.length})` },
-                { id: 'RED', label: `Red (${NATIONAL_HOTSPOTS.filter(s => s.alert_level === 'RED').length})` },
-                { id: 'ORANGE', label: `Orange (${NATIONAL_HOTSPOTS.filter(s => s.alert_level === 'ORANGE').length})` }
+                { id: 'ALL', label: `All (${spots.length})` },
+                { id: 'RED', label: `Red (${redCount})` },
+                { id: 'ORANGE', label: `Orange (${orangeCount})` },
+                { id: 'NORMAL', label: `Normal (${normalCount})` }
               ].map(f => (
                 <button
                   key={f.id}
@@ -105,9 +114,39 @@ export default function RelocationPanel({
             </div>
           </div>
 
+          {redCount === 0 && orangeCount === 0 && (
+            <div style={{
+              background: '#f0fdf4',
+              border: '1px solid #bbf7d0',
+              borderRadius: '4px',
+              padding: '7px 9px',
+              fontSize: '11px',
+              color: '#166534',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '7px'
+            }}>
+              <CheckCircle2 size={15} color="#16a34a" />
+              <div>
+                <strong style={{ fontSize: '11px' }}>Baseline Surveillance Active</strong>
+                <div style={{ fontSize: '9.5px', color: '#15803d' }}>
+                  All 36 States &amp; UTs nominal. No active red zones.
+                </div>
+              </div>
+            </div>
+          )}
+
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
             {filteredSpots.map(spot => {
               const isRed = spot.alert_level === 'RED';
+              const isOrange = spot.alert_level === 'ORANGE';
+              const isNormal = spot.alert_level === 'NORMAL';
+
+              const borderColor = isRed ? '#fca5a5' : isOrange ? '#fed7aa' : '#e2e8f0';
+              const borderLeftColor = isRed ? '#b91c1c' : isOrange ? '#c2410c' : '#10b981';
+              const badgeBg = isRed ? '#fef2f2' : isOrange ? '#fff7ed' : '#f0fdf4';
+              const badgeColor = isRed ? '#991b1b' : isOrange ? '#9a3412' : '#15803d';
+              const badgeBorder = isRed ? '#fca5a5' : isOrange ? '#fdba74' : '#bbf7d0';
 
               return (
                 <div
@@ -115,8 +154,8 @@ export default function RelocationPanel({
                   onClick={() => onSectorChange && onSectorChange(spot.sector_key)}
                   style={{
                     background: '#ffffff',
-                    border: isRed ? '1px solid #fca5a5' : '1px solid #e2e8f0',
-                    borderLeft: isRed ? '3px solid #b91c1c' : '3px solid #c2410c',
+                    border: `1px solid ${borderColor}`,
+                    borderLeft: `3px solid ${borderLeftColor}`,
                     borderRadius: '4px',
                     padding: '8px 10px',
                     fontSize: '11px',
@@ -136,11 +175,11 @@ export default function RelocationPanel({
                       fontWeight: '700',
                       padding: '1px 5px',
                       borderRadius: '2px',
-                      background: isRed ? '#fef2f2' : '#fff7ed',
-                      color: isRed ? '#991b1b' : '#9a3412',
-                      border: isRed ? '1px solid #fca5a5' : '1px solid #fdba74'
+                      background: badgeBg,
+                      color: badgeColor,
+                      border: `1px solid ${badgeBorder}`
                     }}>
-                      {spot.alert_level}
+                      {spot.alert_badge || spot.alert_level}
                     </span>
                   </div>
 
@@ -149,8 +188,8 @@ export default function RelocationPanel({
                   </div>
 
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid #f1f5f9', paddingTop: '4px', marginTop: '2px', fontSize: '10px' }}>
-                    <span style={{ color: '#334155' }}>
-                      At Risk: <strong>{spot.population_at_risk.toLocaleString()}</strong> citizens
+                    <span style={{ color: isNormal ? '#166534' : '#334155' }}>
+                      {isNormal ? 'Telemetry: Baseline Nominal' : `At Risk: ${spot.population_at_risk.toLocaleString()} citizens`}
                     </span>
                     <button
                       onClick={() => onSectorChange && onSectorChange(spot.sector_key)}

@@ -16,7 +16,9 @@ export default function Header({
   onOpenTelemetry,
   onOpenAudit,
   operationalMode = 'LIVE',
-  liveWeather
+  liveWeather,
+  userRole = 'DDMA',
+  onRoleChange
 }) {
   const [timeStr, setTimeStr] = useState('');
 
@@ -262,6 +264,36 @@ export default function Header({
 
         {/* Center/Right: District Jurisdiction Selector & Relocation Horizon */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+          {/* Role-Based Access Control (RBAC) Selector (SIH Mandate) */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+            <span style={{ fontSize: '10.5px', color: '#cbd5e1', fontWeight: '600' }}>Role:</span>
+            <select
+              value={userRole}
+              onChange={e => onRoleChange && onRoleChange(e.target.value)}
+              style={{
+                background: '#0b2545',
+                color: '#86efac',
+                border: '1px solid #1e3a5f',
+                borderRadius: '3px',
+                padding: '4px 6px',
+                fontSize: '10.5px',
+                fontWeight: '700',
+                outline: 'none',
+                cursor: 'pointer',
+                maxWidth: '220px'
+              }}
+            >
+              <option value="DDMA">DDMA / District Magistrate (Sign-Off)</option>
+              <option value="NDMA">NDMA (National Executive Committee)</option>
+              <option value="SDMA">SDMA (State Relief Commissioner)</option>
+              <option value="NDRF">NDRF (Battalion Commander)</option>
+              <option value="DISTRICT_OFFICER">District Officer / DEOC Operator</option>
+              <option value="FIELD_OFFICER">Field Officer (QRT Transit)</option>
+              <option value="ADMIN">System Administrator</option>
+              <option value="READ_ONLY">Public / Observer (Read-Only)</option>
+            </select>
+          </div>
+
           {/* Operational Jurisdiction Selector */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <span style={{ fontSize: '10.5px', color: '#cbd5e1', fontWeight: '600' }}>Jurisdiction:</span>
@@ -278,7 +310,7 @@ export default function Header({
                 fontWeight: '600',
                 outline: 'none',
                 cursor: 'pointer',
-                maxWidth: '280px'
+                maxWidth: '260px'
               }}
             >
               {OPERATIONAL_SECTORS.map(s => (

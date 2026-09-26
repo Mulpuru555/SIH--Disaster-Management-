@@ -7701,3 +7701,44 @@ export function computeLocalSimulation(rainfall, damDischarge = 12000, soilSatur
     };
   });
 }
+
+export function getNationalMonitoringNodes(operationalMode = 'LIVE', simParams = {}, liveWeather = null) {
+  const isSimulation = operationalMode === 'SIMULATION';
+  const isExtreme = isSimulation && ((simParams?.rainfall_mm_hr || 0) > 50 || (simParams?.soil_saturation || 0) > 0.75);
+  const isCycloneLive = liveWeather && Boolean(liveWeather.is_cyclone_alert);
+
+  return NATIONAL_HOTSPOTS.map(spot => {
+    if (!isSimulation) {
+      const isSpotCyclone = isCycloneLive && (spot.sector_key === 'coastal_ap_odisha' || spot.category === 'Coastal & Cyclone Corridors');
+      if (isSpotCyclone) {
+        return {
+          ...spot,
+          alert_level: 'ORANGE',
+          alert_badge: '⚠️ ORANGE WATCH',
+          status: 'Cyclonic Weather Telemetry Active • SDRF Alert'
+        };
+      }
+      return {
+        ...spot,
+        alert_level: 'NORMAL',
+        alert_badge: '✅ NORMAL SURVEILLANCE',
+        habitations_at_risk: 0,
+        population_at_risk: 0,
+        rainfall_rate: 'Routine (Within Baseline)',
+        status: 'IMD AWS & CWC Telemetry Nominal • No Active Red Zones'
+      };
+    }
+
+    if (!isExtreme) {
+      return {
+        ...spot,
+        alert_level: spot.alert_level === 'RED' ? 'ORANGE' : 'NORMAL',
+        alert_badge: spot.alert_level === 'RED' ? '⚠️ ORANGE (Sim)' : '✅ NORMAL (Sim)',
+        status: 'Simulated Baseline Stress Model'
+      };
+    }
+
+    return spot;
+  });
+}
+
