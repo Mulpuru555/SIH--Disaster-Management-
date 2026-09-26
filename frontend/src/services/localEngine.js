@@ -5,21 +5,21 @@
 export const NATIONAL_HOTSPOTS = [
   {
     "id": "IND-CYC-00",
-    "sector_key": "cyclone_arnab",
+    "sector_key": "coastal_ap_odisha",
     "state": "Andhra Pradesh & Odisha",
     "category": "Coastal & Cyclone Corridors",
-    "district": "Kalingapatnam & Srikakulam Coast (Arnab Tufaan Landfall)",
+    "district": "Srikakulam & Ganjam Coastal Sector",
     "lat": 18.330,
     "lng": 84.120,
-    "hazard_type": "Deep Depression Gale & Storm Surge (Arnab Tufaan)",
-    "alert_level": "RED",
-    "alert_badge": "🚨 RED ALERT (CYCLONE)",
+    "hazard_type": "Coastal Storm Surge & Inundation Watch",
+    "alert_level": "ORANGE",
+    "alert_badge": "⚠️ ORANGE ALERT",
     "habitations_at_risk": 12,
     "population_at_risk": 8600,
-    "rainfall_rate": "Active Landfall (75 km/h Gusts)",
-    "wind_speed_kmh": 55,
+    "rainfall_rate": "Monsoon Swell Monitoring",
+    "wind_speed_kmh": 35,
     "river_basin": "Nagavali & Vamsadhara Delta",
-    "status": "Section 34 Evacuation Active / SDRF & NDRF Deployed",
+    "status": "Relief Centers On Standby / SDRF Alert",
     "pilot_available": true,
     "zoom": 11
   },
@@ -759,10 +759,10 @@ export const OPERATIONAL_SECTORS = [
     "districtName": "National Multi-District Scope"
   },
   {
-    "id": "cyclone_arnab",
+    "id": "coastal_ap_odisha",
     "state": "Andhra Pradesh & Odisha",
     "category": "Coastal & Cyclone Corridors",
-    "label": "🌀 Active Storm Arnab: Kalingapatnam / AP & Odisha Coast (Deep Depression Landfall)",
+    "label": "🌊 Coastal Sector: Srikakulam & Ganjam (AP & Odisha)",
     "center": [
       18.330,
       84.120
@@ -1206,7 +1206,7 @@ export const OPERATIONAL_SECTORS = [
 ];
 
 export const DISTRICT_HABITATIONS = {
-  "cyclone_arnab": [
+  "coastal_ap_odisha": [
     {
       "id": "ARN-H1",
       "name": "Kalingapatnam Lighthouse Coastal Hamlet",
@@ -4257,7 +4257,7 @@ export const DISTRICT_HABITATIONS = {
 };
 
 export const DISTRICT_SHELTERS = {
-  "cyclone_arnab": [
+  "coastal_ap_odisha": [
     {
       "id": "S-ARN-1",
       "name": "Kalingapatnam Multipurpose Cyclone Shelter (NDMA Reinforced)",
@@ -6268,7 +6268,7 @@ export const DISTRICT_SHELTERS = {
 };
 
 export const DISTRICT_RESETTLEMENT = {
-  "cyclone_arnab": [
+  "coastal_ap_odisha": [
     {
       "id": "RS-ARN-1",
       "name": "Arasavalli Highland Elevated Township (Srikakulam)",

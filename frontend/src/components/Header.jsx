@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Shield, FileText, Clock, Map, ListFilter, Home, Activity, ShieldCheck, Radio, Sliders, AlertTriangle } from 'lucide-react';
+import {
+  Shield, FileText, Clock, Map, ListFilter, Home, Activity, ShieldCheck,
+  Radio, Sliders, AlertTriangle, Users, Navigation, Truck, Package, Bot
+} from 'lucide-react';
 import { OPERATIONAL_SECTORS } from '../services/localEngine';
 
 export default function Header({
@@ -16,6 +19,20 @@ export default function Header({
   liveWeather
 }) {
   const [timeStr, setTimeStr] = useState('');
+
+  const NAV_MODULES = [
+    { id: 'national', label: '1. National Situation', icon: Map, title: 'Pan-India Overview, Live Doppler Radar & Multi-State Alert Status' },
+    { id: 'alerts', label: '2. Hazard & Alerts', icon: AlertTriangle, title: 'IMD AWS Precipitation & CWC River Stage Gauge Telemetry' },
+    { id: 'risk', label: '3. Risk Register', icon: ListFilter, title: 'Multi-Factor Hazard Scoring & Slope Geotechnical Safety' },
+    { id: 'vulnerable', label: '4. Vulnerable Population', icon: Users, title: 'Census Demographics, PwD, Infants, Elderly & SoVI Index' },
+    { id: 'shelters', label: '5. Shelters & Capacity', icon: Home, title: 'Relief Shelters Carrying Capacity & Sphere Norms Audit' },
+    { id: 'routing', label: '6. Safe Evacuation Routes', icon: Navigation, title: 'SAFE / CAUTION / BLOCKED Corridors & Detour Clearance' },
+    { id: 'relocation', label: '7. Relocation Planning', icon: Truck, title: '3-Tier Horizon Convoy Dispatch & Habitation-Shelter Matching' },
+    { id: 'logistics', label: '8. Resources & Logistics', icon: Package, title: 'Transport Fleet, Boats, Water Tankers & Rations Mobilization' },
+    { id: 'ai_decision', label: '9. AI Decision Support', icon: Bot, title: 'Grounded RAG Assistant, NDRF SOPs & SITREP Generator' },
+    { id: 'audit', label: '10. Reports & Audit', icon: FileText, title: 'Section 34 DM Act Official Relocation Orders & SHA-256 Ledger' },
+    { id: 'contingency', label: 'Sandbox', icon: Sliders, title: 'What-If Simulation Sandbox' }
+  ];
 
   useEffect(() => {
     const update = () => {
@@ -211,32 +228,29 @@ export default function Header({
         flexWrap: 'wrap',
         gap: '8px'
       }}>
-        {/* Navigation Tabs */}
-        <div style={{ display: 'flex', gap: '2px' }}>
-          {[
-            { id: 'gis', label: 'GIS Spatial Command', icon: Map },
-            { id: 'habitations', label: 'Habitations Risk Register', icon: ListFilter },
-            { id: 'shelters', label: 'Relief Shelters & Carrying Capacity', icon: Home },
-            { id: 'contingency', label: 'Contingency Modeling (What-If)', icon: Sliders }
-          ].map(tab => {
+        {/* Navigation Tabs - 10 Standard Government Decision Modules */}
+        <div style={{ display: 'flex', gap: '2px', overflowX: 'auto', paddingBottom: '2px', maxWidth: '100%' }}>
+          {NAV_MODULES.map(tab => {
             const Icon = tab.icon;
-            const isActive = activeTab === tab.id;
+            const isActive = activeTab === tab.id || (tab.id === 'national' && activeTab === 'gis') || (tab.id === 'risk' && activeTab === 'habitations');
             return (
               <button
                 key={tab.id}
                 onClick={() => onTabChange(tab.id)}
+                title={tab.title}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '6px',
-                  padding: '7px 12px',
-                  fontSize: '11.5px',
+                  gap: '5px',
+                  padding: '6px 10px',
+                  fontSize: '11px',
                   fontWeight: isActive ? '700' : '500',
                   color: isActive ? '#ffffff' : '#94a3b8',
                   background: isActive ? '#0f2744' : 'transparent',
                   border: 'none',
                   borderBottom: isActive ? '3px solid #3b82f6' : '3px solid transparent',
-                  cursor: 'pointer'
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap'
                 }}
               >
                 <Icon size={12} color={isActive ? '#38bdf8' : '#64748b'} />

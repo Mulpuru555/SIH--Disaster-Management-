@@ -286,25 +286,19 @@ export default function TacticalMap({
     }
 
     // 2. Active Cyclone & Depressions Tracker (Pan-India & Multi-Basin)
-    // Automatically renders whenever live sensors report cyclonic conditions (pressure < 1002 hPa, gale gusts >= 48 km/h)
-    // or when the user specifically selects the coastal storm testbed sector ('cyclone_arnab') or views all_india.
+    // Automatically renders ONLY when live sensors report cyclonic conditions (MSLP < 1002 hPa, gale gusts >= 48 km/h)
     const isStormActive = liveWeather ? Boolean(liveWeather.is_cyclone_alert) : false;
-    const isStormSector = currentSector === 'cyclone_arnab';
-    const isAllIndia = currentSector === 'all_india';
+    const isCoastalSector = currentSector === 'coastal_ap_odisha';
 
-    // Condition to render cyclone layer:
-    // 1) User is in 'cyclone_arnab' sector
-    // 2) Live weather in CURRENT sector (any of the 36 states or GPS) triggers a cyclone alert
-    // 3) On All-India overview when a storm is active
-    if (isStormSector || isStormActive || isAllIndia) {
-      const stormLat = isStormSector ? 18.330 : (isStormActive && liveWeather?.lat ? liveWeather.lat : 18.330);
-      const stormLng = isStormSector ? 84.120 : (isStormActive && liveWeather?.lng ? liveWeather.lng : 84.120);
-      const currentPressure = Number(liveWeather?.pressure_hpa ?? 991.7);
-      const currentGusts = Number(liveWeather?.wind_gusts_kmh ?? 58.3);
-      const currentWind = Number(liveWeather?.wind_speed_kmh ?? 34.6);
-      const stormName = liveWeather?.storm_name || (isStormSector ? 'Deep Depression "Arnab"' : 'Active Coastal Depression');
-      const stormCat = liveWeather?.storm_category || 'Deep Depression';
-      const stationName = liveWeather?.station_name || 'Kalingapatnam / Srikakulam Coast, AP';
+    if (isStormActive) {
+      const stormLat = liveWeather?.lat ? liveWeather.lat : 18.330;
+      const stormLng = liveWeather?.lng ? liveWeather.lng : 84.120;
+      const currentPressure = Number(liveWeather?.pressure_hpa ?? 1004.0);
+      const currentGusts = Number(liveWeather?.wind_gusts_kmh ?? 50.0);
+      const currentWind = Number(liveWeather?.wind_speed_kmh ?? 32.0);
+      const stormName = liveWeather?.storm_name || 'Active Cyclonic System';
+      const stormCat = liveWeather?.storm_category || 'Depression';
+      const stationName = liveWeather?.station_name || 'Coastal Observation Station';
 
       // Concentric Barometric Isobar Rings (Pressure gradient)
       // 1. Central Low Eye Ring
@@ -372,14 +366,14 @@ export default function TacticalMap({
             <div>&bull; <b>Epicenter / Station:</b> ${stationName}</div>
             <div>&bull; <b>Central MSLP:</b> <strong style="color: #38bdf8;">${currentPressure} hPa</strong></div>
             <div>&bull; <b>Sustained Wind:</b> ${currentWind} km/h | <b>Peak Gale Gusts:</b> <strong style="color: #f87171;">${currentGusts} km/h</strong></div>
-            <div>&bull; <b>Marine Wave Swell:</b> 3.5m - 4.5m (Rough to Very Rough)</div>
+            <div>&bull; <b>Marine Wave Swell:</b> Rough to Very Rough</div>
             <div style="margin-top: 5px; padding: 5px 8px; background: rgba(220, 38, 38, 0.2); border-left: 3px solid #ef4444; border-radius: 3px; font-size: 10.5px; color: #fecaca;">
               <b>Precautionary Action:</b> IMD coastal warning active. Preemptive evacuation into reinforced cyclone shelters ordered under Section 34. Total suspension of sea fishing.
             </div>
           </div>
-          ${currentSector !== 'cyclone_arnab' ? `
-            <button id="btn-zoom-cyclone-arnab" style="width: 100%; margin-top: 10px; background: #dc2626; color: white; border: 1px solid #f87171; padding: 7px 10px; border-radius: 4px; cursor: pointer; font-size: 11.5px; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 6px;">
-              <span>Focus on Cyclone Landfall Ground Grid</span>
+          ${!isCoastalSector ? `
+            <button id="btn-zoom-cyclone-sector" style="width: 100%; margin-top: 10px; background: #dc2626; color: white; border: 1px solid #f87171; padding: 7px 10px; border-radius: 4px; cursor: pointer; font-size: 11.5px; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 6px;">
+              <span>Focus on Coastal Hazard Ground Grid</span>
               <span>&rarr;</span>
             </button>
           ` : ''}
@@ -388,10 +382,10 @@ export default function TacticalMap({
 
       cycloneMarker.bindPopup(cyclonePopup);
       cycloneMarker.on('popupopen', () => {
-        const btn = document.getElementById('btn-zoom-cyclone-arnab');
+        const btn = document.getElementById('btn-zoom-cyclone-sector');
         if (btn && onSectorChange) {
           btn.onclick = () => {
-            onSectorChange('cyclone_arnab');
+            onSectorChange('coastal_ap_odisha');
             cycloneMarker.closePopup();
           };
         }
@@ -656,30 +650,32 @@ export default function TacticalMap({
       }}>
         {/* Left: Sector Jurisdiction & Geolocation */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-          {/* Quick Active Storm Shortcut Button */}
-          <button
-            onClick={() => onSectorChange && onSectorChange('cyclone_arnab')}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '5px',
-              padding: '4px 8px',
-              borderRadius: '3px',
-              border: currentSector === 'cyclone_arnab' ? '1.5px solid #b91c1c' : '1px solid #fca5a5',
-              background: currentSector === 'cyclone_arnab' ? '#b91c1c' : '#fef2f2',
-              color: currentSector === 'cyclone_arnab' ? '#ffffff' : '#991b1b',
-              fontSize: '11px',
-              fontWeight: '700',
-              cursor: 'pointer'
-            }}
-            title="Focus map on Active Cyclone Arnab / Kalingapatnam landfall corridor"
-          >
-            <span>🌀</span>
-            <span>Storm Arnab (AP/Odisha)</span>
-            <span style={{ fontSize: '9px', background: currentSector === 'cyclone_arnab' ? '#7f1d1d' : '#fee2e2', padding: '1px 4px', borderRadius: '2px', fontWeight: 'bold' }}>
-              991 hPa
-            </span>
-          </button>
+          {/* Dynamic Active Storm Shortcut Button - ONLY displayed when verified storm is detected */}
+          {liveWeather?.is_cyclone_alert && (
+            <button
+              onClick={() => onSectorChange && onSectorChange('coastal_ap_odisha')}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '5px',
+                padding: '4px 8px',
+                borderRadius: '3px',
+                border: currentSector === 'coastal_ap_odisha' ? '1.5px solid #b91c1c' : '1px solid #fca5a5',
+                background: currentSector === 'coastal_ap_odisha' ? '#b91c1c' : '#fef2f2',
+                color: currentSector === 'coastal_ap_odisha' ? '#ffffff' : '#991b1b',
+                fontSize: '11px',
+                fontWeight: '700',
+                cursor: 'pointer'
+              }}
+              title="Focus map on Active Cyclonic System Corridor"
+            >
+              <span>🌀</span>
+              <span>{liveWeather.storm_name || 'Active Cyclonic Disturbance'}</span>
+              <span style={{ fontSize: '9px', background: currentSector === 'coastal_ap_odisha' ? '#7f1d1d' : '#fee2e2', padding: '1px 4px', borderRadius: '2px', fontWeight: 'bold' }}>
+                {liveWeather.pressure_hpa} hPa
+              </span>
+            </button>
+          )}
 
           <span style={{ fontSize: '11px', color: '#475569', fontWeight: '700', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '4px' }}>
             <Globe size={13} color="#0b2545" />
@@ -702,7 +698,6 @@ export default function TacticalMap({
             }}
           >
             <option value="all_india">🇮🇳 All-India Multi-Hazard Overview (36 States &amp; UTs)</option>
-            <option value="cyclone_arnab">🌀 ACTIVE STORM ARNAB: Kalingapatnam / AP &amp; Odisha Landfall</option>
             <optgroup label="🏔️ Himalayan &amp; Hill States (10 States/UTs)">
               {OPERATIONAL_SECTORS.filter(s => s.category === 'Himalayan & Hill States').map(s => (
                 <option key={s.id} value={s.id}>{s.label}</option>

@@ -11,10 +11,10 @@ export default function ActiveStormBanner({
   const [isDismissed, setIsDismissed] = useState(false);
 
   // Auto-deactivation logic:
-  // If the storm has passed (pressure >= 1002 hPa, gusts < 48 km/h) and user is not explicitly inspecting the storm sector,
+  // If the storm has passed (pressure >= 1002 hPa, gusts < 48 km/h),
   // the emergency banner automatically hides itself so the platform remains clean during normal weather.
   const isStormActive = liveWeather ? Boolean(liveWeather.is_cyclone_alert) : false;
-  if (!isStormActive && currentSector !== 'cyclone_arnab') {
+  if (!isStormActive) {
     return null;
   }
 
@@ -26,18 +26,18 @@ export default function ActiveStormBanner({
           className="badge-red"
           style={{ cursor: 'pointer', padding: '3px 8px' }}
         >
-          <span>🚨 Show Cyclone Advisory ({liveWeather?.pressure_hpa ?? 996.1} hPa &bull; {liveWeather?.wind_gusts_kmh ?? 56.9} km/h)</span>
+          <span>🚨 Show Cyclone Advisory ({liveWeather?.pressure_hpa} hPa &bull; {liveWeather?.wind_gusts_kmh} km/h)</span>
         </button>
       </div>
     );
   }
 
-  const isFocusingStorm = currentSector === 'cyclone_arnab';
+  const isFocusingStorm = currentSector === 'coastal_ap_odisha';
   const stormName = liveWeather?.storm_name || 'Active Cyclonic System';
-  const pressureVal = liveWeather?.pressure_hpa ?? 996.1;
-  const gustsVal = liveWeather?.wind_gusts_kmh ?? 56.9;
-  const windsVal = liveWeather?.wind_speed_kmh ?? 34.5;
-  const seaCondition = liveWeather?.sea_condition || 'Rough to Very Rough (3.0m - 4.5m Wave Swell)';
+  const pressureVal = liveWeather?.pressure_hpa ?? 1004.0;
+  const gustsVal = liveWeather?.wind_gusts_kmh ?? 50.0;
+  const windsVal = liveWeather?.wind_speed_kmh ?? 32.0;
+  const seaCondition = liveWeather?.sea_condition || 'Rough Coastal Swell';
 
   return (
     <div style={{
@@ -84,7 +84,7 @@ export default function ActiveStormBanner({
       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
         {!isFocusingStorm && onSelectStormSector && (
           <button
-            onClick={() => onSelectStormSector('cyclone_arnab')}
+            onClick={() => onSelectStormSector('coastal_ap_odisha')}
             style={{
               background: '#b91c1c',
               color: '#ffffff',

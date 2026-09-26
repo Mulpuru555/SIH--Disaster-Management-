@@ -6,6 +6,13 @@ import SimulationControls from './components/SimulationControls';
 import RelocationPanel from './components/RelocationPanel';
 import HabitationsRegister from './components/HabitationsRegister';
 import SheltersMatrix from './components/SheltersMatrix';
+import HazardAlertsView from './components/HazardAlertsView';
+import VulnerablePopulationView from './components/VulnerablePopulationView';
+import SafeRoutingView from './components/SafeRoutingView';
+import RelocationPlanningView from './components/RelocationPlanningView';
+import LogisticsResourcesView from './components/LogisticsResourcesView';
+import AIDecisionSupportView from './components/AIDecisionSupportView';
+import ReportsAuditView from './components/ReportsAuditView';
 import XAIModal from './components/XAIModal';
 import DispatchModal from './components/DispatchModal';
 import AlertBanner from './components/AlertBanner';
@@ -98,17 +105,17 @@ export default function App() {
     setShelters(secData.shelters);
     setResettlementSites(secData.resettlement);
 
-    if (newSectorId === 'cyclone_arnab') {
+    if (newSectorId === 'coastal_ap_odisha') {
       setIsRadarActive(true); // Automatically activate live Doppler radar for storm tracking
     }
 
     const sectorObj = OPERATIONAL_SECTORS.find(s => s.id === newSectorId);
     setNotification({
       title: `OPERATIONAL JURISDICTION: ${sectorObj?.label || newSectorId}`,
-      message: newSectorId === 'cyclone_arnab'
-        ? 'Deep Depression "Arnab" Landfall Corridor active. Real-time gale telemetry & Doppler radar synchronized.'
+      message: (newSectorId === 'coastal_ap_odisha')
+        ? 'Coastal Observation Sector active. Real-time gale telemetry & Doppler radar synchronized.'
         : 'High-resolution geotechnical slope models, local relief inventory, and AWS radar synchronized.',
-      type: newSectorId === 'cyclone_arnab' ? 'warning' : 'info'
+      type: 'info'
     });
   };
 
@@ -339,8 +346,8 @@ export default function App() {
         horizon={horizon}
       />
 
-      {/* Tab 1: Integrated GIS Command (Clean 2-Column Wide Workspace) */}
-      {activeTab === 'gis' && (
+      {/* Module 1: National Situation & GIS Spatial Command */}
+      {(activeTab === 'gis' || activeTab === 'national') && (
         <main style={{
           display: 'grid',
           gridTemplateColumns: 'minmax(0, 1fr) 350px',
@@ -383,8 +390,20 @@ export default function App() {
         </main>
       )}
 
-      {/* Tab 2: Habitations Risk Register */}
-      {activeTab === 'habitations' && (
+      {/* Module 2: Hazard & Alerts Telemetry (IMD AWS & CWC Gauges) */}
+      {activeTab === 'alerts' && (
+        <main style={{ flex: 1 }}>
+          <HazardAlertsView
+            currentSector={currentSector}
+            onSectorChange={handleSectorChange}
+            liveWeather={liveWeather}
+            operationalMode={operationalMode}
+          />
+        </main>
+      )}
+
+      {/* Module 3: Habitations Multi-Hazard Risk Register */}
+      {(activeTab === 'habitations' || activeTab === 'risk') && (
         <main style={{ flex: 1 }}>
           <HabitationsRegister
             habitations={habitations}
@@ -393,7 +412,17 @@ export default function App() {
         </main>
       )}
 
-      {/* Tab 3: Relief Camps & Capacity Matrix */}
+      {/* Module 4: Vulnerable Population Demographics & Special Needs */}
+      {activeTab === 'vulnerable' && (
+        <main style={{ flex: 1 }}>
+          <VulnerablePopulationView
+            habitations={habitations}
+            onSelectHabitation={h => setSelectedHabitationForXAI(h)}
+          />
+        </main>
+      )}
+
+      {/* Module 5: Relief Shelters Carrying Capacity & Sphere Norms */}
       {activeTab === 'shelters' && (
         <main style={{ flex: 1 }}>
           <SheltersMatrix
@@ -402,7 +431,73 @@ export default function App() {
         </main>
       )}
 
-      {/* Tab 4: Contingency Scenario Modeling (What-If Sandbox) */}
+      {/* Module 6: Safe Evacuation Routes & Inundation Detours */}
+      {activeTab === 'routing' && (
+        <main style={{ flex: 1 }}>
+          <SafeRoutingView
+            evacuationPlan={evacuationPlan}
+            habitations={habitations}
+            shelters={shelters}
+            onTriggerBridgeWashout={handleTriggerBridgeWashout}
+            onResetSimulation={handleResetSimulation}
+          />
+        </main>
+      )}
+
+      {/* Module 7: 3-Tier Horizon Relocation Master Planning */}
+      {activeTab === 'relocation' && (
+        <main style={{ flex: 1 }}>
+          <RelocationPlanningView
+            evacuationPlan={evacuationPlan}
+            shelters={shelters}
+            resettlementSites={resettlementSites}
+            horizon={horizon}
+            onHorizonChange={setHorizon}
+            onOpenRelocationPlan={() => setIsOpOrdOpen(true)}
+          />
+        </main>
+      )}
+
+      {/* Module 8: Logistics Fleet & Emergency Supply Mobilization */}
+      {activeTab === 'logistics' && (
+        <main style={{ flex: 1 }}>
+          <LogisticsResourcesView
+            evacuationPlan={evacuationPlan}
+            shelters={shelters}
+            currentSector={currentSector}
+          />
+        </main>
+      )}
+
+      {/* Module 9: AI Decision Support & Grounded RAG Copilot */}
+      {activeTab === 'ai_decision' && (
+        <main style={{ flex: 1 }}>
+          <AIDecisionSupportView
+            habitations={habitations}
+            shelters={shelters}
+            resettlementSites={resettlementSites}
+            currentSector={currentSector}
+            liveWeather={liveWeather}
+            horizon={horizon}
+          />
+        </main>
+      )}
+
+      {/* Module 10: Statutory Reports & Cryptographic Audit Ledger */}
+      {activeTab === 'audit' && (
+        <main style={{ flex: 1 }}>
+          <ReportsAuditView
+            habitations={habitations}
+            shelters={shelters}
+            evacuationPlan={evacuationPlan}
+            currentSector={currentSector}
+            liveWeather={liveWeather}
+            onOpenRelocationPlan={() => setIsOpOrdOpen(true)}
+          />
+        </main>
+      )}
+
+      {/* Contingency Modeling Sandbox (What-If Scenarios) */}
       {activeTab === 'contingency' && (
         <main style={{ flex: 1, padding: '0 16px 20px 16px' }}>
           <SimulationControls

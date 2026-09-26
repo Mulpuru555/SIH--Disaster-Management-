@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Activity, Waves, CloudRain, AlertTriangle, CheckCircle2, RefreshCw, X, Shield, Info, Database } from 'lucide-react';
 import { fetchLiveSectorWeather } from '../services/weatherApi';
 
-export default function LiveTelemetryModal({ isOpen, onClose, currentSector = 'cyclone_arnab' }) {
+export default function LiveTelemetryModal({ isOpen, onClose, currentSector = 'all_india' }) {
   const [liveData, setLiveData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [lastChecked, setLastChecked] = useState('');

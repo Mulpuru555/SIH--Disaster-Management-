@@ -5,12 +5,12 @@ export const SECTOR_COORDINATES = {
   // Pan-India Overview (Central Hub)
   all_india: { lat: 21.1458, lng: 79.0882, name: "National Met Division (Central India / Nagpur)" },
 
-  // --- 0. ACTIVE CYCLONIC SYSTEMS & EMERGENCY CORRIDORS ---
-  cyclone_arnab: { 
+  // --- 0. COASTAL & CYCLONE CORRIDORS ---
+  coastal_ap_odisha: { 
     lat: 18.3300, 
     lng: 84.1200, 
-    name: "Cyclone Arnab Landfall Corridor: Kalingapatnam / Srikakulam & South Odisha Coast",
-    is_cyclone_zone: true 
+    name: "Bay of Bengal Coastal Sector: Srikakulam & Ganjam Coastal Radar",
+    is_coastal: true 
   },
 
   // --- 1. HIMALAYAN & HILL STATES & UTS ---
@@ -134,14 +134,8 @@ export async function fetchLiveSectorWeather(sectorKey = 'all_india', customCoor
       const isBayOfBengal = (coords.lng >= 77.5);
       const basinName = isBayOfBengal ? "Bay of Bengal" : "Arabian Sea";
       
-      // If inspecting the current active system corridor (Kalingapatnam / AP / Odisha)
-      if (sectorKey === 'cyclone_arnab' || (coords.lat >= 16.5 && coords.lat <= 20.5 && coords.lng >= 83.0 && coords.lng <= 86.5 && pressure < 996)) {
-        detectedStormName = `Deep Depression "Arnab" (${basinName})`;
-      } else {
-        detectedStormName = `${stormCategory} (${basinName} - ${coords.name.split(',')[0].trim()})`;
-      }
-
-      stormAlertText = `🚨 ${stormCategory.toUpperCase()}: Active system with gusts ${windGusts} km/h and central MSLP ${pressure} hPa! High swell waves & coastal surge warning.`;
+      detectedStormName = `${stormCategory} (${basinName} System - ${coords.name.split(',')[0].trim()})`;
+      stormAlertText = `🚨 ${stormCategory.toUpperCase()}: Active cyclonic system detected with gusts ${windGusts} km/h and central MSLP ${pressure} hPa. Coastal surge advisory active.`;
     }
 
     return {
@@ -171,21 +165,19 @@ export async function fetchLiveSectorWeather(sectorKey = 'all_india', customCoor
     clearTimeout(timeoutId);
     console.warn(`Live weather fetch using calibrated fallback for ${coords.name}:`, err);
     
-    // Check if this is the active cyclone sector (Kalingapatnam / AP / Odisha)
-    const isStormSector = sectorKey === 'cyclone_arnab' || sectorKey === 'andhra_pradesh' || sectorKey === 'odisha';
-    const windSpeed = isStormSector ? 32.4 : 14.5;
-    const windGusts = isStormSector ? 54.7 : 22.0;
-    const pressure = isStormSector ? 991.2 : 1010.5;
-    const rain = isStormSector ? 3.5 : 0.8;
-    const weatherInfo = decodeWmoCode(isStormSector ? 80 : 61, windSpeed, windGusts, pressure);
+    const windSpeed = 14.5;
+    const windGusts = 22.0;
+    const pressure = 1010.5;
+    const rain = 0.8;
+    const weatherInfo = decodeWmoCode(61, windSpeed, windGusts, pressure);
 
     return {
       success: true,
       station_name: coords.name,
       lat: coords.lat,
       lng: coords.lng,
-      temperature_c: isStormSector ? 28.5 : 25.4,
-      humidity_pct: isStormSector ? 84 : 76,
+      temperature_c: 26.4,
+      humidity_pct: 76,
       precipitation_mm: rain,
       wind_speed_kmh: windSpeed,
       wind_gusts_kmh: windGusts,
@@ -193,12 +185,12 @@ export async function fetchLiveSectorWeather(sectorKey = 'all_india', customCoor
       condition: weatherInfo.label,
       condition_icon: weatherInfo.icon,
       severity: weatherInfo.severity,
-      is_cyclone_alert: isStormSector,
-      storm_name: isStormSector ? "Arnab (Bay of Bengal Deep Depression)" : null,
-      storm_alert_text: isStormSector ? `🚨 SEVERE CYCLONE ALERT: Deep Depression "Arnab" landfall active at Kalingapatnam with gusts ${windGusts} km/h and central pressure ${pressure} hPa!` : null,
-      sea_condition: isStormSector ? "Rough to Very Rough (3.5m - 4.5m Swell)" : "Normal Coastal Baseline",
-      hourly_rain: isStormSector ? [1.2, 2.5, 4.0, 5.5, 3.8, 2.0, 1.5, 0.8] : [0.2, 0.4, 0.8, 1.2, 0.5, 0.2, 0.0, 0.0],
-      hourly_gusts: isStormSector ? [52, 58, 65, 76, 68, 55, 48, 42] : [15, 18, 22, 25, 20, 18, 15, 12],
+      is_cyclone_alert: false,
+      storm_name: null,
+      storm_alert_text: null,
+      sea_condition: "Normal Coastal Baseline",
+      hourly_rain: [0.2, 0.4, 0.8, 1.2, 0.5, 0.2, 0.0, 0.0],
+      hourly_gusts: [15, 18, 22, 25, 20, 18, 15, 12],
       last_updated: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + ' IST (AWS Calibrated)'
     };
   }

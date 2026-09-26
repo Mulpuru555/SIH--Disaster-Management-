@@ -569,7 +569,7 @@ def get_hazard_polygons_geojson(session: Session = Depends(get_db)):
 def get_live_weather(
     lat: float = Query(default=18.330, description="Latitude of observation"),
     lng: float = Query(default=84.120, description="Longitude of observation"),
-    sector: str = Query(default="cyclone_arnab", description="Operational sector key")
+    sector: str = Query(default="all_india", description="Operational sector key")
 ):
     """
     Live Hydro-Meteorological Observation Telemetry Proxy
@@ -593,8 +593,23 @@ def get_live_weather(
             rain = float(curr.get("precipitation", 0.0))
             wmo_code = int(curr.get("weather_code", 0))
 
-            is_cyclone = pressure < 1000.0 or wind_gusts >= 48.0 or wind_speed >= 32.0 or sector == "cyclone_arnab"
-            severity = "CRITICAL" if (pressure < 995.0 or wind_gusts >= 65.0) else ("HIGH" if is_cyclone else "MODERATE")
+            is_cyclone = (pressure < 1002.0 and wind_gusts >= 45.0) or wind_gusts >= 62.0 or wind_speed >= 34.0
+            basin = "Bay of Bengal" if lng >= 77.5 else "Arabian Sea"
+            if is_cyclone:
+                if wind_speed >= 89.0 or wind_gusts >= 115.0:
+                    cat = "Severe Cyclonic Storm (SCS)"
+                elif wind_speed >= 62.0 or wind_gusts >= 88.0:
+                    cat = "Cyclonic Storm (CS)"
+                elif pressure < 995.0 or wind_gusts >= 55.0:
+                    cat = "Deep Depression"
+                else:
+                    cat = "Depression"
+                storm_name = f"{cat} ({basin} Basin)"
+                severity = "CRITICAL" if (pressure < 995.0 or wind_gusts >= 65.0) else "HIGH"
+            else:
+                storm_name = None
+                cat = "Normal Coastal Baseline"
+                severity = "MODERATE" if rain > 25.0 else "LOW"
             
             return {
                 "success": True,
@@ -609,29 +624,30 @@ def get_live_weather(
                 "pressure_hpa": pressure,
                 "weather_code": wmo_code,
                 "is_cyclone_alert": is_cyclone,
-                "storm_name": "Arnab (Bay of Bengal System)" if is_cyclone else None,
+                "storm_name": storm_name,
+                "storm_category": cat if is_cyclone else None,
                 "severity": severity,
                 "sea_condition": "Rough to Very Rough (3.0m - 4.5m Swell)" if is_cyclone else "Normal Coastal Waters",
                 "timestamp": datetime.now().strftime("%I:%M:%S %p IST")
             }
     except Exception as e:
-        is_cyclone = sector in ["cyclone_arnab", "andhra_pradesh", "odisha"]
         return {
             "success": True,
             "fallback": True,
             "lat": lat,
             "lng": lng,
             "sector": sector,
-            "temperature_c": 28.5 if is_cyclone else 25.4,
-            "humidity_pct": 84.0 if is_cyclone else 76.0,
-            "precipitation_mm": 3.5 if is_cyclone else 0.8,
-            "wind_speed_kmh": 32.4 if is_cyclone else 14.5,
-            "wind_gusts_kmh": 54.7 if is_cyclone else 22.0,
-            "pressure_hpa": 991.2 if is_cyclone else 1010.5,
-            "is_cyclone_alert": is_cyclone,
-            "storm_name": "Arnab (Bay of Bengal Deep Depression)" if is_cyclone else None,
-            "severity": "CRITICAL" if is_cyclone else "MODERATE",
-            "sea_condition": "Rough to Very Rough (3.5m - 4.5m Swell)" if is_cyclone else "Normal Coastal Baseline",
+            "temperature_c": 27.2,
+            "humidity_pct": 78.0,
+            "precipitation_mm": 0.5,
+            "wind_speed_kmh": 14.0,
+            "wind_gusts_kmh": 21.0,
+            "pressure_hpa": 1009.5,
+            "is_cyclone_alert": False,
+            "storm_name": None,
+            "storm_category": None,
+            "severity": "NORMAL",
+            "sea_condition": "Normal Coastal Baseline",
             "timestamp": datetime.now().strftime("%I:%M:%S %p IST (Calibrated)")
         }
 
