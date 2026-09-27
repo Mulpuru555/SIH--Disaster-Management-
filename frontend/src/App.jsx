@@ -459,7 +459,25 @@ export default function App() {
       )}
 
       {/* ========================================================================
-          MODULE 8: REPORTS & AUDIT (7 Government Reports & SHA-256 Cryptographic Chain)
+          MODULE 7: OFFICIAL REPORTS (SITREP, Risk, Evacuation & Resource Manifests)
+          ======================================================================== */}
+      {activeTab === 'reports' && (
+        <main style={{ flex: 1 }}>
+          <ReportsAuditView
+            habitations={habitations}
+            shelters={shelters}
+            evacuationPlan={evacuationPlan}
+            currentSector={currentSector}
+            liveWeather={liveWeather}
+            userRole={userRole}
+            onOpenRelocationPlan={() => setIsOpOrdOpen(true)}
+            initialReport="sitrep"
+          />
+        </main>
+      )}
+
+      {/* ========================================================================
+          MODULE 8: DATA SOURCES & AUDIT (Section 34 Orders & SHA-256 Ledger)
           ======================================================================== */}
       {activeTab === 'audit' && (
         <main style={{ flex: 1 }}>
@@ -471,6 +489,7 @@ export default function App() {
             liveWeather={liveWeather}
             userRole={userRole}
             onOpenRelocationPlan={() => setIsOpOrdOpen(true)}
+            initialReport="audit"
           />
         </main>
       )}

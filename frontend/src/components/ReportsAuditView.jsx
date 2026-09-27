@@ -11,12 +11,17 @@ export default function ReportsAuditView({
   currentSector,
   liveWeather,
   userRole = 'DDMA',
-  _onOpenRelocationPlan
+  _onOpenRelocationPlan,
+  initialReport = 'sitrep'
 }) {
-  const [selectedReport, setSelectedReport] = useState('sitrep');
+  const [selectedReport, setSelectedReport] = useState(initialReport);
   const officerName = 'Dr. Rajesh Sharma, IAS';
   const designation = 'District Magistrate & Chairman, DDMA';
   const [isSigned, setIsSigned] = useState(false);
+
+  React.useEffect(() => {
+    if (initialReport) setSelectedReport(initialReport);
+  }, [initialReport]);
 
   const redHabs = habitations.filter(h => h.zone === 'RED');
   const totalEvacuees = evacuationPlan.reduce((acc, p) => acc + (p.evacuee_count || 0), 0);

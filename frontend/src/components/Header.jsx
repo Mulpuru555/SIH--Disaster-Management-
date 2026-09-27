@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Shield, FileText, Clock, Map, ListFilter, Home,
+  Shield, FileText, Clock, Map, Home,
   Radio, Sliders, AlertTriangle, Navigation, Truck, Bot, Globe
 } from 'lucide-react';
 import { OPERATIONAL_SECTORS } from '../services/localEngine';
@@ -27,14 +27,14 @@ export default function Header({
 
   // Exact 8 Core Decision Modules mandated by SIH26191 Government Specification
   const NAV_MODULES = [
-    { id: 'national', label: language === 'HI' ? 'राष्ट्रीय स्थिति' : 'National Situation', icon: Map, title: 'Pan-India Overview, 7-Question Situational Brief & GIS Command Map' },
-    { id: 'alerts', label: language === 'HI' ? 'आपदा अलर्ट' : 'Disaster Alerts', icon: AlertTriangle, title: 'Real-time IMD AWS Precipitation & CWC River Stage Gauge Telemetry' },
-    { id: 'risk', label: language === 'HI' ? 'जोखिम एवं संवेदनशीलता' : 'Risk & Vulnerability', icon: ListFilter, title: 'Multi-Factor Hazard Scoring, Factor of Safety & Explainable Risk Rationale' },
-    { id: 'shelters', label: language === 'HI' ? 'आश्रय एवं संसाधन' : 'Shelters & Resources', icon: Home, title: 'Relief Shelters Carrying Capacity, Sphere Norms & Logistics Fleet Mobilization' },
-    { id: 'routing', label: language === 'HI' ? 'सुरक्षित निकासी मार्ग' : 'Evacuation Routes', icon: Navigation, title: 'SAFE / CAUTION / BLOCKED Corridors, Bridge Washout Warnings & Detour Times' },
-    { id: 'relocation', label: language === 'HI' ? 'पुनर्वास योजना' : 'Relocation Planning', icon: Truck, title: '3-Tier Horizon Evacuation Planning & Editable Draft Relocation Plan' },
-    { id: 'ai_decision', label: language === 'HI' ? 'एआई निर्णय समर्थन' : 'AI Decision Support', icon: Bot, title: 'Grounded RAG Assistant, NDRF SOPs & Statutory Decision Analysis' },
-    { id: 'audit', label: language === 'HI' ? 'रिपोर्ट एवं ऑडिट' : 'Reports & Audit', icon: FileText, title: 'Section 34 DM Act Official Relocation Orders & SHA-256 Cryptographic Audit Ledger' }
+    { id: 'national', label: language === 'HI' ? 'होम / डैशबोर्ड' : 'Home / Dashboard', icon: Map, title: 'National Situation Briefing, 7 Critical Decision Parameters & Pan-India Overview' },
+    { id: 'alerts', label: language === 'HI' ? 'आपदा स्थिति (लाइव)' : 'Live Disaster Situation', icon: AlertTriangle, title: 'Real-time IMD Automated Weather Stations (AWS) & CWC River Stage Gauges' },
+    { id: 'gis', label: language === 'HI' ? 'जीआईएस एवं सुरक्षित मार्ग' : 'GIS & Safe Routes', icon: Navigation, title: 'Interactive GIS Tactical Command Map with Safest & Fastest Evacuation Routes' },
+    { id: 'ai_decision', label: language === 'HI' ? 'एआई निर्णय समर्थन' : 'AI Decision Support', icon: Bot, title: 'Grounded Gen-AI Copilot, NDRF SOPs & Statutory Decision Recommendations' },
+    { id: 'shelters', label: language === 'HI' ? 'राहत आश्रय एवं क्षमता' : 'Relief Shelters & Capacity', icon: Home, title: 'Shelters Carrying Capacity, Sphere Humanitarian Norms & Logistics Fleet' },
+    { id: 'relocation', label: language === 'HI' ? 'निकासी एवं पुनर्वास योजना' : 'Evacuation / Relocation Plans', icon: Truck, title: '11-Column Master Evacuation Registry, 3-Tier Horizons & Editable Plan' },
+    { id: 'reports', label: language === 'HI' ? 'सरकारी रिपोर्ट' : 'Reports', icon: FileText, title: 'Official SITREP, Risk Assessment & Resource Mobilization Reports' },
+    { id: 'audit', label: language === 'HI' ? 'डेटा स्रोत एवं ऑडिट' : 'Data Sources / Audit', icon: Shield, title: 'Section 34 DM Act Orders, Cryptographic SHA-256 Ledger & Data Lineage' }
   ];
 
   // Adjust font size dynamically for GIGW accessibility compliance
