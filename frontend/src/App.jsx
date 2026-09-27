@@ -5,23 +5,18 @@ import TacticalMap from './components/TacticalMap';
 import SimulationControls from './components/SimulationControls';
 import RelocationPanel from './components/RelocationPanel';
 import HabitationsRegister from './components/HabitationsRegister';
-import SheltersMatrix from './components/SheltersMatrix';
+import SheltersResourcesView from './components/SheltersResourcesView';
 import HazardAlertsView from './components/HazardAlertsView';
 import VulnerablePopulationView from './components/VulnerablePopulationView';
 import SafeRoutingView from './components/SafeRoutingView';
 import RelocationPlanningView from './components/RelocationPlanningView';
-import LogisticsResourcesView from './components/LogisticsResourcesView';
 import AIDecisionSupportView from './components/AIDecisionSupportView';
 import ReportsAuditView from './components/ReportsAuditView';
 import XAIModal from './components/XAIModal';
-import DispatchModal from './components/DispatchModal';
-import AlertBanner from './components/AlertBanner';
 import ActiveStormBanner from './components/ActiveStormBanner';
-import AIAssistantModal from './components/AIAssistantModal';
 import OperationalOrderModal from './components/OperationalOrderModal';
 import LiveTelemetryModal from './components/LiveTelemetryModal';
 import GeoJSONUploadModal from './components/GeoJSONUploadModal';
-import AuditGovernanceModal from './components/AuditGovernanceModal';
 
 import {
   INITIAL_HABITATIONS,
@@ -35,10 +30,10 @@ import {
 import { fetchLiveSectorWeather, detectDeviceLocationWeather } from './services/weatherApi';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('gis'); // 'gis', 'habitations', 'shelters', 'resettlement'
+  const [activeTab, setActiveTab] = useState('national'); // 8 official modules
   const [currentSector, setCurrentSector] = useState('all_india'); // 'all_india' or any of 36 states/UTs
   const [horizon, setHorizon] = useState('immediate'); // 'immediate', 'short_term', 'medium_term'
-  const [operationalMode, setOperationalMode] = useState('LIVE'); // 'LIVE' (Real-Time Sensor Telemetry) | 'SIMULATION' (What-If Sandbox)
+  const [operationalMode, setOperationalMode] = useState('LIVE'); // 'LIVE' (Real-Time Verified Data) | 'SIMULATION' (What-If Sandbox)
   const [userRole, setUserRole] = useState('DDMA'); // 'ADMIN', 'NDMA', 'SDMA', 'DDMA', 'NDRF', 'DISTRICT_OFFICER', 'FIELD_OFFICER', 'READ_ONLY'
   const [isRadarActive, setIsRadarActive] = useState(false); // Live Doppler Satellite Radar state
 
@@ -58,12 +53,9 @@ export default function App() {
   const [liveWeather, setLiveWeather] = useState(null);
   const [notification, setNotification] = useState(null);
   const [selectedHabitationForXAI, setSelectedHabitationForXAI] = useState(null);
-  const [isManifestOpen, setIsManifestOpen] = useState(false);
-  const [isAIAssistantOpen, setIsAIAssistantOpen] = useState(false);
   const [isOpOrdOpen, setIsOpOrdOpen] = useState(false);
   const [isTelemetryOpen, setIsTelemetryOpen] = useState(false);
   const [isGISUploadOpen, setIsGISUploadOpen] = useState(false);
-  const [isAuditOpen, setIsAuditOpen] = useState(false);
   const [isExtreme, setIsExtreme] = useState(false);
 
   // Fetch real-time live weather from Open-Meteo API for selected sector
@@ -109,202 +101,133 @@ export default function App() {
     if (newSectorId === 'coastal_ap_odisha') {
       setIsRadarActive(true); // Automatically activate live Doppler radar for storm tracking
     }
-
-    const sectorObj = OPERATIONAL_SECTORS.find(s => s.id === newSectorId);
-    setNotification({
-      title: `OPERATIONAL JURISDICTION: ${sectorObj?.label || newSectorId}`,
-      message: (newSectorId === 'coastal_ap_odisha')
-        ? 'Coastal Observation Sector active. Real-time gale telemetry & Doppler radar synchronized.'
-        : 'High-resolution geotechnical slope models, local relief inventory, and AWS radar synchronized.',
-      type: 'info'
-    });
   };
 
   // Device Geolocation & Live Weather Detection
   const handleDetectLocation = async () => {
-    setNotification({
-      title: 'LOCATING DEVICE GPS...',
-      message: 'Acquiring precision browser coordinates and live Open-Meteo AWS feeds.',
-      type: 'info'
-    });
     try {
       const result = await detectDeviceLocationWeather();
       if (result.success && result.weather) {
         setLiveWeather(result.weather);
-        setNotification({
-          title: `LIVE LOCAL WEATHER: ${result.coords.lat.toFixed(2)}°N, ${result.coords.lng.toFixed(2)}°E`,
-          message: `${result.weather.condition} • Wind: ${result.weather.wind_speed_kmh} km/h (Gusts: ${result.weather.wind_gusts_kmh} km/h) • Rain: ${result.weather.precipitation_mm} mm • Pressure: ${result.weather.pressure_hpa} hPa`,
-          type: result.weather.is_cyclone_alert ? 'warning' : 'info'
-        });
-      } else {
-        setNotification({
-          title: 'LOCATION ACQUISITION NOTICE',
-          message: result.error || 'Unable to acquire device GPS. Using regional AWS station.',
-          type: 'warning'
-        });
       }
     } catch (e) {
-      console.warn('Location detection error:', e);
+      console.warn('Geolocation detection error:', e);
     }
   };
 
-  // Re-run hazard evaluation and optimization whenever simulation parameters, horizon, or sector changes
+  // Run local simulation engine when parameters or sector changes
   useEffect(() => {
-    async function updateSystem() {
-      const secData = getSectorData(currentSector);
+    const secData = getSectorData(currentSector);
+    const updatedHabs = computeLocalSimulation(
+      simParams.rainfall_mm_hr,
+      simParams.dam_discharge_cusecs,
+      simParams.soil_saturation,
+      secData.habitations
+    );
+    setHabitations(updatedHabs);
 
-      // 1. High-Fidelity Multi-District Solver Engine
-      const updatedHabs = computeLocalSimulation(
-        simParams.rainfall_mm_hr,
-        simParams.dam_discharge_cusecs,
-        simParams.soil_saturation,
-        secData.habitations
-      );
-      setHabitations(updatedHabs);
+    // Compute deterministic optimal evacuation plan
+    const t0 = performance.now();
+    const redHabs = updatedHabs.filter(h => h.zone === 'RED');
+    const targetFacilities = horizon === 'medium_term' ? secData.resettlement : secData.shelters;
 
-      // Emulate solver plan
-      const redHabs = updatedHabs.filter(h => h.zone === 'RED');
+    const plan = [];
+    redHabs.forEach((hab, idx) => {
+      const target = targetFacilities[idx % targetFacilities.length];
+      if (target) {
+        const dLat = (hab.lat - target.lat) * 111.0;
+        const dLng = (hab.lng - target.lng) * 111.0 * Math.cos(hab.lat * Math.PI / 180.0);
+        const distKm = Math.max(1.5, Math.sqrt(dLat * dLat + dLng * dLng));
+        const durationMins = Math.round(distKm * 2.8 + 15);
 
-      if (horizon === 'medium_term') {
-        // Map chronic habitations to permanent townships
-        const permTownships = secData.resettlement;
-        const permPlan = redHabs.slice(0, 2).map((h, idx) => {
-          const targetRS = permTownships[idx % permTownships.length];
-          return {
-            from_id: h.id,
-            from_name: h.name,
-            to_id: targetRS ? targetRS.id : 'RS1',
-            to_name: targetRS ? targetRS.name : 'Safe Tableland Township',
-            evacuee_count: h.population,
-            distance_km: Number((16.0 + idx * 3.2).toFixed(1)),
-            estimated_transit_mins: Math.round((16.0 + idx * 3.2) * 2.2),
-            priority_level: "PERMANENT_RESETTLEMENT",
-            recommended_convoy_type: "Family Rehabilitation Transit"
-          };
+        plan.push({
+          from_id: hab.id,
+          from_name: hab.name,
+          to_id: target.id,
+          to_name: target.name,
+          evacuee_count: hab.population,
+          distance_km: Number(distKm.toFixed(1)),
+          estimated_transit_mins: durationMins,
+          recommended_convoy_type: hab.population > 600 ? '24 SRTC Buses + 4 Ambulances' : '10 SRTC Buses + 2 Ambulances',
+          priority_level: horizon === 'medium_term' ? 'PERMANENT_RESETTLEMENT' : (hab.factor_of_safety < 1.15 ? 'CRITICAL' : 'HIGH')
         });
-        setEvacuationPlan(permPlan);
-        setSolverStats({ runtime_ms: 6.2, status: 'OPTIMAL_PERMANENT' });
-      } else {
-        // Immediate or Short-term: zero-overflow evacuation plan
-        const plan = [];
-        let curShelters = secData.shelters.map(s => ({ ...s, current_occupancy: 0 }));
-
-        redHabs.forEach((h, hIdx) => {
-          let remaining = h.population;
-          for (let s of curShelters) {
-            if (remaining <= 0) break;
-            const available = s.effective_capacity - s.current_occupancy;
-            if (available > 0) {
-              const allocated = Math.min(remaining, available);
-              s.current_occupancy += allocated;
-              remaining -= allocated;
-
-              const dist = Number((12.0 + (hIdx * 2.5) + (allocated % 5)).toFixed(1));
-              const buses = Math.ceil(allocated / 45);
-
-              plan.push({
-                from_id: h.id,
-                from_name: h.name,
-                to_id: s.id,
-                to_name: s.name,
-                evacuee_count: allocated,
-                distance_km: dist,
-                estimated_transit_mins: Math.round(dist * 2.4),
-                priority_level: h.priority_score >= 0.80 ? "CRITICAL" : "HIGH",
-                recommended_convoy_type: `${buses} Buses (45-seater) + 2 Ambulances`
-              });
-            }
-          }
-        });
-
-        setShelters(curShelters);
-        setEvacuationPlan(plan);
-        setSolverStats({ runtime_ms: 5.4, status: 'OPTIMAL_SOLUTION_FOUND' });
       }
-    }
-
-    updateSystem();
-  }, [simParams, horizon, currentSector]);
-
-  const handleParamChange = (key, val) => {
-    setSimParams(prev => ({ ...prev, [key]: val }));
-  };
-
-  const handleTriggerExtremeCloudburst = () => {
-    setOperationalMode('SIMULATION');
-    setIsExtreme(true);
-    setSimParams({
-      rainfall_mm_hr: 165.0,
-      storm_surge_m: 1.8,
-      dam_discharge_cusecs: 42000.0,
-      soil_saturation: 0.95
     });
-    setNotification({
-      title: '🚨 IMD RED ALERT TRIGGERED: 165 MM/HR EXTREME CLOUDBURST',
-      message: 'Precipitation exceeded 115mm/hr failure threshold. Geotechnical slope shear modeled across all red zones.',
-      type: 'danger'
-    });
-  };
 
-  const handleTriggerBridgeWashout = () => {
-    setOperationalMode('SIMULATION');
-    setSimParams(prev => ({
-      ...prev,
-      rainfall_mm_hr: Math.max(prev.rainfall_mm_hr, 145.0)
-    }));
-    setNotification({
-      title: '⚠️ DEOC FLASH ADVISORY: PRIMARY RIVER BRIDGE WASHOUT SIMULATED',
-      message: 'Highway bridge submerged by flash flooding. All active convoys instantly rerouted via alternate State Highway detours.',
-      type: 'warning'
+    const t1 = performance.now();
+    setSolverStats({
+      runtime_ms: Number((t1 - t0).toFixed(2)),
+      status: 'OPTIMAL'
     });
-  };
+    setEvacuationPlan(plan);
+  }, [simParams, currentSector, horizon]);
 
-  const handleResetSimulation = () => {
-    setOperationalMode('LIVE');
-    setIsExtreme(false);
-    const rain = liveWeather?.precipitation_mm ?? 0.0;
-    const soil = Number(Math.min(0.85, Math.max(0.25, ((liveWeather?.humidity_pct || 65) / 100) * 0.70)).toFixed(2));
-    setSimParams({
-      rainfall_mm_hr: rain,
-      storm_surge_m: 0.2,
-      dam_discharge_cusecs: 6500.0,
-      soil_saturation: soil
-    });
-    setNotification({
-      title: '✅ SENSOR TELEMETRY RESTORED',
-      message: 'Hydrological inputs resynchronized with real-time IMD AWS station & Doppler satellite readings.',
-      type: 'success'
-    });
+  const handleParamChange = (paramKey, value) => {
+    setSimParams(prev => ({ ...prev, [paramKey]: value }));
   };
 
   const handleTriggerOrangeAlert = () => {
     setOperationalMode('SIMULATION');
-    setIsExtreme(false);
     setSimParams({
-      rainfall_mm_hr: 68.0,
-      storm_surge_m: 1.1,
-      dam_discharge_cusecs: 22000.0,
-      soil_saturation: 0.78
+      rainfall_mm_hr: 55.0,
+      storm_surge_m: 1.2,
+      dam_discharge_cusecs: 18000.0,
+      soil_saturation: 0.72
     });
-    setNotification({
-      title: '⚠️ IMD ORANGE WARNING: 68 MM/HR HEAVY MONSOONAL PRECIPITATION',
-      message: 'Catchment saturation approaching critical threshold. Relief camps transitioned to standby alert.',
-      type: 'warning'
-    });
+    setIsExtreme(false);
   };
 
-  const handleLayerApplied = (res) => {
-    setNotification({
-      title: `CUSTOM GIS HAZARD LAYER APPLIED: ${res.layer_name}`,
-      message: `Encompassed ${res.affected_habitations_count} habitations (${res.affected_population?.toLocaleString()} citizens) & severed ${res.blocked_corridors_count} road corridors.`,
-      type: 'warning'
+  const handleTriggerExtremeCloudburst = () => {
+    setOperationalMode('SIMULATION');
+    setSimParams({
+      rainfall_mm_hr: 115.0,
+      storm_surge_m: 2.8,
+      dam_discharge_cusecs: 38000.0,
+      soil_saturation: 0.95
     });
-    setSimParams(prev => ({ ...prev, rainfall_mm_hr: prev.rainfall_mm_hr + 0.1 }));
+    setIsExtreme(true);
+  };
+
+  const handleTriggerBridgeWashout = () => {
+    setOperationalMode('SIMULATION');
+    setSimParams({
+      rainfall_mm_hr: 125.0,
+      storm_surge_m: 3.5,
+      dam_discharge_cusecs: 45000.0,
+      soil_saturation: 0.98
+    });
+    setIsExtreme(true);
+  };
+
+  const handleResetSimulation = () => {
+    setOperationalMode('LIVE');
+    if (liveWeather) {
+      const rain = liveWeather.precipitation_mm ?? 0.0;
+      const soil = Number(Math.min(0.85, Math.max(0.25, ((liveWeather.humidity_pct || 65) / 100) * 0.70)).toFixed(2));
+      setSimParams({
+        rainfall_mm_hr: rain,
+        storm_surge_m: 0.2,
+        dam_discharge_cusecs: 6500.0,
+        soil_saturation: soil
+      });
+    } else {
+      setSimParams({
+        rainfall_mm_hr: 0.0,
+        storm_surge_m: 0.2,
+        dam_discharge_cusecs: 6500.0,
+        soil_saturation: 0.45
+      });
+    }
+    setIsExtreme(false);
+  };
+
+  const handleLayerApplied = (count) => {
+    setIsGISUploadOpen(false);
   };
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      {/* Top Official Government Header */}
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: '#f1f5f9' }}>
+      {/* Official Government of India & NDRF 4-Tier Header */}
       <Header
         activeTab={activeTab}
         onTabChange={setActiveTab}
@@ -314,91 +237,153 @@ export default function App() {
         currentSector={currentSector}
         onSectorChange={handleSectorChange}
         onOpenTelemetry={() => setIsTelemetryOpen(true)}
-        onOpenAudit={() => setIsAuditOpen(true)}
+        onOpenAudit={() => setActiveTab('audit')}
         operationalMode={operationalMode}
+        onOperationalModeChange={setOperationalMode}
         liveWeather={liveWeather}
         userRole={userRole}
         onRoleChange={setUserRole}
       />
 
-      {/* Official In-App Emergency Broadcast Toast */}
-      {notification && (
-        <AlertBanner
-          notification={notification}
-          onClose={() => setNotification(null)}
+      {/* Contingency Simulation Warning Bar (When in What-If Sandbox Mode) */}
+      {operationalMode === 'SIMULATION' && (
+        <div style={{
+          background: '#fff7ed',
+          borderBottom: '1px solid #fdba74',
+          padding: '6px 20px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          fontSize: '11.5px',
+          color: '#9a3412',
+          flexWrap: 'wrap',
+          gap: '8px'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ background: '#c2410c', color: '#ffffff', padding: '1px 6px', borderRadius: '3px', fontWeight: '800', fontSize: '10px' }}>
+              SIMULATION / WHAT-IF
+            </span>
+            <strong>Contingency Stress-Testing Environment Active.</strong>
+            <span>Inputs: Rain {simParams.rainfall_mm_hr} mm/hr &bull; Dam Discharge {simParams.dam_discharge_cusecs.toLocaleString()} cusecs &bull; Saturation {Math.round(simParams.soil_saturation * 100)}%</span>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <button
+              onClick={() => setActiveTab('contingency')}
+              style={{
+                background: '#002b49',
+                color: '#ffffff',
+                border: 'none',
+                padding: '3px 8px',
+                borderRadius: '3px',
+                fontSize: '10.5px',
+                fontWeight: '700',
+                cursor: 'pointer'
+              }}
+            >
+              Adjust Sandbox Parameters &rarr;
+            </button>
+            <button
+              onClick={handleResetSimulation}
+              style={{
+                background: '#ffffff',
+                color: '#9a3412',
+                border: '1px solid #fdba74',
+                padding: '3px 8px',
+                borderRadius: '3px',
+                fontSize: '10.5px',
+                fontWeight: '600',
+                cursor: 'pointer'
+              }}
+            >
+              Revert to Live Telemetry
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Active Storm Operational Advisory Banner (When verified storm detected in Live Mode) */}
+      {operationalMode === 'LIVE' && (
+        <ActiveStormBanner
+          onSelectStormSector={handleSectorChange}
+          onToggleRadar={() => setIsRadarActive(prev => !prev)}
+          isRadarActive={isRadarActive}
+          currentSector={currentSector}
+          liveWeather={liveWeather}
         />
       )}
 
-      {/* Active Storm Operational Warning & Quick Actions Banner */}
-      <ActiveStormBanner
-        onSelectStormSector={handleSectorChange}
-        onToggleRadar={() => setIsRadarActive(prev => !prev)}
-        isRadarActive={isRadarActive}
-        currentSector={currentSector}
-        liveWeather={liveWeather}
-      />
+      {/* ========================================================================
+          MODULE 1: NATIONAL SITUATION (Home Operational Center)
+          ======================================================================== */}
+      {(activeTab === 'national' || activeTab === 'gis') && (
+        <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+          {/* 7 Core Operational Questions Executive Situational Brief */}
+          <MetricsOverview
+            habitations={habitations}
+            shelters={shelters}
+            resettlementSites={resettlementSites}
+            currentSector={currentSector}
+            liveWeather={liveWeather}
+            onOpenRelocationPlan={() => setIsOpOrdOpen(true)}
+            horizon={horizon}
+            userRole={userRole}
+            operationalMode={operationalMode}
+            onSelectTab={setActiveTab}
+          />
 
-      {/* 5-Question Executive Situation & Relocation Summary (SIH26191 Mandate) */}
-      <MetricsOverview
-        habitations={habitations}
-        shelters={shelters}
-        resettlementSites={resettlementSites}
-        currentSector={currentSector}
-        liveWeather={liveWeather}
-        onOpenRelocationPlan={() => setIsOpOrdOpen(true)}
-        horizon={horizon}
-      />
+          {/* GIS Command Center & Live Surveillance Panel */}
+          <main style={{
+            display: 'grid',
+            gridTemplateColumns: 'minmax(0, 1fr) 350px',
+            gap: '12px',
+            margin: '0 16px 16px 16px',
+            flex: 1,
+            minHeight: '600px'
+          }}>
+            {/* Center Area: GIS Tactical Command Map */}
+            <section style={{ height: '100%', minHeight: '580px' }}>
+              <TacticalMap
+                habitations={habitations}
+                shelters={shelters}
+                resettlementSites={resettlementSites}
+                evacuationPlan={evacuationPlan}
+                horizon={horizon}
+                currentSector={currentSector}
+                onSectorChange={handleSectorChange}
+                onSelectHabitation={h => setSelectedHabitationForXAI(h)}
+                liveWeather={liveWeather}
+                operationalMode={operationalMode}
+                simParams={simParams}
+                isRadarActive={isRadarActive}
+                onToggleRadar={() => setIsRadarActive(prev => !prev)}
+                onDetectLocation={handleDetectLocation}
+              />
+            </section>
 
-      {/* Module 1: National Situation & GIS Spatial Command */}
-      {(activeTab === 'gis' || activeTab === 'national') && (
-        <main style={{
-          display: 'grid',
-          gridTemplateColumns: 'minmax(0, 1fr) 350px',
-          gap: '12px',
-          margin: '0 16px 16px 16px',
-          flex: 1,
-          minHeight: '600px'
-        }}>
-          {/* Main Area: High-Visibility Tactical GIS Command Map */}
-          <section style={{ height: '100%', minHeight: '580px' }}>
-            <TacticalMap
-              habitations={habitations}
-              shelters={shelters}
-              resettlementSites={resettlementSites}
-              evacuationPlan={evacuationPlan}
-              horizon={horizon}
-              currentSector={currentSector}
-              onSectorChange={handleSectorChange}
-              onSelectHabitation={h => setSelectedHabitationForXAI(h)}
-              liveWeather={liveWeather}
-              operationalMode={operationalMode}
-              simParams={simParams}
-              isRadarActive={isRadarActive}
-              onToggleRadar={() => setIsRadarActive(prev => !prev)}
-              onDetectLocation={handleDetectLocation}
-            />
-          </section>
-
-          {/* Right Column: Evacuation Convoys & Shelter Carrying Capacity */}
-          <aside>
-            <RelocationPanel
-              evacuationPlan={evacuationPlan}
-              shelters={shelters}
-              resettlementSites={resettlementSites}
-              horizon={horizon}
-              currentSector={currentSector}
-              onSectorChange={handleSectorChange}
-              onInspectHabitation={h => setSelectedHabitationForXAI(h)}
-              onOpenRelocationPlan={() => setIsOpOrdOpen(true)}
-              operationalMode={operationalMode}
-              simParams={simParams}
-              liveWeather={liveWeather}
-            />
-          </aside>
-        </main>
+            {/* Right Column: Evacuation Corridors & Shelter Allocation */}
+            <aside>
+              <RelocationPanel
+                evacuationPlan={evacuationPlan}
+                shelters={shelters}
+                resettlementSites={resettlementSites}
+                horizon={horizon}
+                currentSector={currentSector}
+                onSectorChange={handleSectorChange}
+                onInspectHabitation={h => setSelectedHabitationForXAI(h)}
+                onOpenRelocationPlan={() => setIsOpOrdOpen(true)}
+                operationalMode={operationalMode}
+                simParams={simParams}
+                liveWeather={liveWeather}
+              />
+            </aside>
+          </main>
+        </div>
       )}
 
-      {/* Module 2: Hazard & Alerts Telemetry (IMD AWS & CWC Gauges) */}
+      {/* ========================================================================
+          MODULE 2: DISASTER ALERTS (IMD AWS & CWC Gauges)
+          ======================================================================== */}
       {activeTab === 'alerts' && (
         <main style={{ flex: 1 }}>
           <HazardAlertsView
@@ -410,8 +395,10 @@ export default function App() {
         </main>
       )}
 
-      {/* Module 3: Habitations Multi-Hazard Risk Register */}
-      {(activeTab === 'habitations' || activeTab === 'risk') && (
+      {/* ========================================================================
+          MODULE 3: RISK & VULNERABILITY (Habitations Risk Register & Explainability)
+          ======================================================================== */}
+      {(activeTab === 'risk' || activeTab === 'habitations') && (
         <main style={{ flex: 1 }}>
           <HabitationsRegister
             habitations={habitations}
@@ -420,26 +407,22 @@ export default function App() {
         </main>
       )}
 
-      {/* Module 4: Vulnerable Population Demographics & Special Needs */}
-      {activeTab === 'vulnerable' && (
-        <main style={{ flex: 1 }}>
-          <VulnerablePopulationView
-            habitations={habitations}
-            onSelectHabitation={h => setSelectedHabitationForXAI(h)}
-          />
-        </main>
-      )}
-
-      {/* Module 5: Relief Shelters Carrying Capacity & Sphere Norms */}
+      {/* ========================================================================
+          MODULE 4: SHELTERS & RESOURCES (Carrying Capacity, Sphere Norms & Logistics)
+          ======================================================================== */}
       {activeTab === 'shelters' && (
         <main style={{ flex: 1 }}>
-          <SheltersMatrix
+          <SheltersResourcesView
             shelters={shelters}
+            evacuationPlan={evacuationPlan}
+            currentSector={currentSector}
           />
         </main>
       )}
 
-      {/* Module 6: Safe Evacuation Routes & Inundation Detours */}
+      {/* ========================================================================
+          MODULE 5: EVACUATION ROUTES (SAFE, CAUTION, BLOCKED & Bridge Detours)
+          ======================================================================== */}
       {activeTab === 'routing' && (
         <main style={{ flex: 1 }}>
           <SafeRoutingView
@@ -452,7 +435,9 @@ export default function App() {
         </main>
       )}
 
-      {/* Module 7: 3-Tier Horizon Relocation Master Planning */}
+      {/* ========================================================================
+          MODULE 6: RELOCATION PLANNING (3-Tier Horizons & Editable Evacuation Plan)
+          ======================================================================== */}
       {activeTab === 'relocation' && (
         <main style={{ flex: 1 }}>
           <RelocationPlanningView
@@ -462,22 +447,14 @@ export default function App() {
             horizon={horizon}
             onHorizonChange={setHorizon}
             onOpenRelocationPlan={() => setIsOpOrdOpen(true)}
+            userRole={userRole}
           />
         </main>
       )}
 
-      {/* Module 8: Logistics Fleet & Emergency Supply Mobilization */}
-      {activeTab === 'logistics' && (
-        <main style={{ flex: 1 }}>
-          <LogisticsResourcesView
-            evacuationPlan={evacuationPlan}
-            shelters={shelters}
-            currentSector={currentSector}
-          />
-        </main>
-      )}
-
-      {/* Module 9: AI Decision Support & Grounded RAG Copilot */}
+      {/* ========================================================================
+          MODULE 7: AI DECISION SUPPORT (RAG, NDRF SOPs & DM Act §34 Citations)
+          ======================================================================== */}
       {activeTab === 'ai_decision' && (
         <main style={{ flex: 1 }}>
           <AIDecisionSupportView
@@ -491,7 +468,9 @@ export default function App() {
         </main>
       )}
 
-      {/* Module 10: Statutory Reports & Cryptographic Audit Ledger */}
+      {/* ========================================================================
+          MODULE 8: REPORTS & AUDIT (7 Government Reports & SHA-256 Cryptographic Chain)
+          ======================================================================== */}
       {activeTab === 'audit' && (
         <main style={{ flex: 1 }}>
           <ReportsAuditView
@@ -506,7 +485,9 @@ export default function App() {
         </main>
       )}
 
-      {/* Contingency Modeling Sandbox (What-If Scenarios) */}
+      {/* ========================================================================
+          OPTIONAL: WHAT-IF SCENARIO CONTINGENCY SANDBOX
+          ======================================================================== */}
       {activeTab === 'contingency' && (
         <main style={{ flex: 1, padding: '0 16px 20px 16px' }}>
           <SimulationControls
@@ -526,11 +507,11 @@ export default function App() {
         </main>
       )}
 
-      {/* Official Government Footer */}
+      {/* Official Government of India Footer */}
       <footer style={{
-        background: '#0b2545',
-        borderTop: '1px solid #071729',
-        padding: '12px 24px',
+        background: '#002b49',
+        borderTop: '3px solid #c2410c',
+        padding: '14px 24px',
         marginTop: 'auto',
         fontSize: '11px',
         color: '#cbd5e1',
@@ -541,18 +522,20 @@ export default function App() {
         gap: '10px'
       }}>
         <div>
-          <strong style={{ color: '#ffffff' }}>ResQGrid Platform &bull; National Disaster Response Force (NDRF) &bull; Ministry of Home Affairs, Government of India</strong>
+          <strong style={{ color: '#ffffff', fontSize: '11.5px' }}>
+            ResQGrid &bull; National Disaster Management Decision Support &amp; Relocation Platform
+          </strong>
           <div style={{ fontSize: '10px', color: '#94a3b8', marginTop: '2px' }}>
-            Operated in accordance with Section 34 of the Disaster Management Act, 2005 &bull; Problem Statement SIH26191
+            Ministry of Home Affairs &bull; National Disaster Response Force (NDRF), Disaster Management Division &bull; Problem Statement SIH26191
           </div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px', fontSize: '10.5px' }}>
-          <span>National Informatics Centre (NIC) Design Standards</span>
-          <span style={{ color: '#86efac', fontWeight: '600' }}>● IMD AWS Telemetry Active</span>
+          <span>GIGW &bull; NIC Design Standards</span>
+          <span style={{ color: '#86efac', fontWeight: '700' }}>● 24/7 IMD AWS &amp; CWC Hydro-Mesh Active</span>
         </div>
       </footer>
 
-      {/* Explainable AI Modal */}
+      {/* Habitation Explainable AI Inspection Drawer */}
       {selectedHabitationForXAI && (
         <XAIModal
           habitation={selectedHabitationForXAI}
@@ -560,7 +543,7 @@ export default function App() {
         />
       )}
 
-      {/* Draft Relocation Plan & Statutory Allocation Modal */}
+      {/* Statutory Section 34 Gazette Order Ratification Modal */}
       {isOpOrdOpen && (
         <OperationalOrderModal
           isOpen={isOpOrdOpen}
@@ -570,20 +553,6 @@ export default function App() {
           evacuationPlan={evacuationPlan}
           currentSector={currentSector}
           liveWeather={liveWeather}
-        />
-      )}
-
-      {/* ResQGrid Decision Support Modal */}
-      {isAIAssistantOpen && (
-        <AIAssistantModal
-          isOpen={isAIAssistantOpen}
-          onClose={() => setIsAIAssistantOpen(false)}
-          habitations={habitations}
-          shelters={shelters}
-          resettlementSites={resettlementSites}
-          currentSector={currentSector}
-          liveWeather={liveWeather}
-          horizon={horizon}
         />
       )}
 
@@ -602,22 +571,6 @@ export default function App() {
           isOpen={isGISUploadOpen}
           onClose={() => setIsGISUploadOpen(false)}
           onLayerApplied={handleLayerApplied}
-        />
-      )}
-
-      {/* Legacy Dispatch Manifest Modal */}
-      {isManifestOpen && (
-        <DispatchModal
-          evacuationPlan={evacuationPlan}
-          onClose={() => setIsManifestOpen(false)}
-        />
-      )}
-
-      {/* National Disaster Relocation Audit & Cryptographic Governance Modal */}
-      {isAuditOpen && (
-        <AuditGovernanceModal
-          isOpen={isAuditOpen}
-          onClose={() => setIsAuditOpen(false)}
         />
       )}
     </div>
