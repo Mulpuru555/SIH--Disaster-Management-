@@ -1,13 +1,10 @@
 import React, { useState } from 'react';
-import {
-  Bot, Send, ShieldCheck, BookOpen, AlertTriangle, FileText, CheckCircle2,
-  Sparkles, RefreshCw, Compass, Truck, Home, Navigation, HelpCircle
-} from 'lucide-react';
+import { Bot, Send, Sparkles, RefreshCw } from 'lucide-react';
 
 export default function AIDecisionSupportView({
   habitations = [],
   shelters = [],
-  resettlementSites = [],
+  _resettlementSites = [],
   currentSector,
   liveWeather,
   horizon = 'immediate'
@@ -71,10 +68,8 @@ export default function AIDecisionSupportView({
 
     try {
       const redHabs = habitations.filter(h => h.zone === 'RED');
-      const orangeHabs = habitations.filter(h => h.zone === 'ORANGE');
       const totalRedPop = redHabs.reduce((acc, h) => acc + (h.population || 0), 0);
       const totalShelterCap = shelters.reduce((acc, s) => acc + (s.effective_capacity || 0), 0);
-      const availableBuffer = Math.max(0, totalShelterCap - shelters.reduce((acc, s) => acc + (s.current_occupancy || 0), 0));
 
       // Attempt live backend call
       const res = await fetch('https://sih-disaster-management-botb.onrender.com/api/genai/query', {

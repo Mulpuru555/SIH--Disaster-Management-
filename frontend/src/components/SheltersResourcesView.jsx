@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { Home, Truck, Search, Download, CheckCircle2, AlertTriangle, Droplets, HeartPulse, Shield, Fuel, Package } from 'lucide-react';
+import { Home, Truck, Search, Download, CheckCircle2, Package } from 'lucide-react';
 
 export default function SheltersResourcesView({
   shelters,
   evacuationPlan = [],
-  currentSector
+  _currentSector
 }) {
   const [activeSubTab, setActiveSubTab] = useState('shelters'); // 'shelters' | 'logistics'
   const [searchTerm, setSearchTerm] = useState('');
@@ -13,7 +13,7 @@ export default function SheltersResourcesView({
   // Shelters Aggregates
   const totalCapacity = shelters.reduce((acc, s) => acc + (s.effective_capacity || 0), 0);
   const totalOccupied = shelters.reduce((acc, s) => acc + (s.current_occupancy || 0), 0);
-  const totalArea = shelters.reduce((acc, s) => acc + (s.usable_area_sqm || 0), 0);
+  const _totalArea = shelters.reduce((acc, s) => acc + (s.usable_area_sqm || 0), 0);
   const totalWater = shelters.reduce((acc, s) => acc + (s.water_liters || 0), 0);
   const totalToilets = shelters.reduce((acc, s) => acc + (s.toilets_count || 0), 0);
   const totalMedics = shelters.reduce((acc, s) => acc + (s.medical_staff_count || 0), 0);

@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { Navigation, AlertTriangle, CheckCircle2, ShieldX, ArrowRight, RefreshCw, Car, Clock } from 'lucide-react';
+import { Navigation, AlertTriangle, Clock } from 'lucide-react';
 
 export default function SafeRoutingView({
   evacuationPlan,
-  habitations,
-  shelters,
+  _habitations,
+  _shelters,
   onTriggerBridgeWashout,
   onResetSimulation
 }) {

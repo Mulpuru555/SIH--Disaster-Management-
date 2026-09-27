@@ -7,7 +7,6 @@ import RelocationPanel from './components/RelocationPanel';
 import HabitationsRegister from './components/HabitationsRegister';
 import SheltersResourcesView from './components/SheltersResourcesView';
 import HazardAlertsView from './components/HazardAlertsView';
-import VulnerablePopulationView from './components/VulnerablePopulationView';
 import SafeRoutingView from './components/SafeRoutingView';
 import RelocationPlanningView from './components/RelocationPlanningView';
 import AIDecisionSupportView from './components/AIDecisionSupportView';
@@ -22,7 +21,6 @@ import {
   INITIAL_HABITATIONS,
   INITIAL_SHELTERS,
   INITIAL_RESETTLEMENT,
-  OPERATIONAL_SECTORS,
   getSectorData,
   computeLocalSimulation
 } from './services/localEngine';
@@ -48,10 +46,8 @@ export default function App() {
   const [shelters, setShelters] = useState(INITIAL_SHELTERS);
   const [resettlementSites, setResettlementSites] = useState(INITIAL_RESETTLEMENT);
   const [evacuationPlan, setEvacuationPlan] = useState([]);
-  const [solverStats, setSolverStats] = useState({ runtime_ms: 5.4, status: 'OPTIMAL' });
 
   const [liveWeather, setLiveWeather] = useState(null);
-  const [notification, setNotification] = useState(null);
   const [selectedHabitationForXAI, setSelectedHabitationForXAI] = useState(null);
   const [isOpOrdOpen, setIsOpOrdOpen] = useState(false);
   const [isTelemetryOpen, setIsTelemetryOpen] = useState(false);
@@ -127,7 +123,6 @@ export default function App() {
     setHabitations(updatedHabs);
 
     // Compute deterministic optimal evacuation plan
-    const t0 = performance.now();
     const redHabs = updatedHabs.filter(h => h.zone === 'RED');
     const targetFacilities = horizon === 'medium_term' ? secData.resettlement : secData.shelters;
 
@@ -154,11 +149,6 @@ export default function App() {
       }
     });
 
-    const t1 = performance.now();
-    setSolverStats({
-      runtime_ms: Number((t1 - t0).toFixed(2)),
-      status: 'OPTIMAL'
-    });
     setEvacuationPlan(plan);
   }, [simParams, currentSector, horizon]);
 
@@ -221,7 +211,7 @@ export default function App() {
     setIsExtreme(false);
   };
 
-  const handleLayerApplied = (count) => {
+  const handleLayerApplied = (_count) => {
     setIsGISUploadOpen(false);
   };
 

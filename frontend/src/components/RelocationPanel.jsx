@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Truck, Home, ShieldCheck, ChevronRight, Search, FileText, CheckCircle2 } from 'lucide-react';
-import { NATIONAL_HOTSPOTS, getNationalMonitoringNodes } from '../services/localEngine';
+import { getNationalMonitoringNodes } from '../services/localEngine';
 
 export default function RelocationPanel({
   evacuationPlan,

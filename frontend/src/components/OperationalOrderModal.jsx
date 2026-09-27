@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FileText, Printer, CheckCircle2, Shield, X, AlertTriangle } from 'lucide-react';
+import { FileText, Printer, CheckCircle2, Shield, X } from 'lucide-react';
 import { OPERATIONAL_SECTORS } from '../services/localEngine';
 
 export default function OperationalOrderModal({
@@ -160,7 +160,7 @@ export default function OperationalOrderModal({
               <div style={{ background: '#f8fafc', padding: '8px 10px', borderRadius: '4px', border: '1px solid #e2e8f0' }}>
                 <div style={{ color: '#64748b', fontSize: '10px' }}>Active Hazard</div>
                 <div style={{ color: '#0f172a', fontWeight: '700', marginTop: '2px' }}>
-                  {liveWeather?.storm_name || liveWeather?.condition || 'Monsoonal Precipitation Event'}
+                  {currentSectorObj?.label ? `${currentSectorObj.label.split('(')[0].trim()}: ` : ''}{liveWeather?.storm_name || liveWeather?.condition || 'Monsoonal Precipitation Event'}
                 </div>
               </div>
               <div style={{ background: '#f8fafc', padding: '8px 10px', borderRadius: '4px', border: '1px solid #e2e8f0' }}>

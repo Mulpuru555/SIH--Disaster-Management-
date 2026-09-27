@@ -1,33 +1,30 @@
 import React, { useState } from 'react';
 import {
-  ShieldCheck, FileText, Download, CheckCircle2, AlertTriangle, Printer, Lock,
-  Check, FileSpreadsheet, Bot, ListFilter, Truck, Home, Activity
+  ShieldCheck, CheckCircle2, Printer, Lock,
+  FileSpreadsheet, Bot, ListFilter, Truck, Home, Activity
 } from 'lucide-react';
 
 export default function ReportsAuditView({
   habitations = [],
-  shelters = [],
+  _shelters = [],
   evacuationPlan = [],
   currentSector,
   liveWeather,
   userRole = 'DDMA',
-  onOpenRelocationPlan
+  _onOpenRelocationPlan
 }) {
   const [selectedReport, setSelectedReport] = useState('sitrep');
-  const [officerName, setOfficerName] = useState('Dr. Rajesh Sharma, IAS');
-  const [designation, setDesignation] = useState('District Magistrate & Chairman, DDMA');
+  const officerName = 'Dr. Rajesh Sharma, IAS';
+  const designation = 'District Magistrate & Chairman, DDMA';
   const [isSigned, setIsSigned] = useState(false);
 
   const redHabs = habitations.filter(h => h.zone === 'RED');
-  const orangeHabs = habitations.filter(h => h.zone === 'ORANGE');
   const totalEvacuees = evacuationPlan.reduce((acc, p) => acc + (p.evacuee_count || 0), 0);
-  const totalCapacity = shelters.reduce((acc, s) => acc + (s.effective_capacity || 0), 0);
   const totalBuses = evacuationPlan.reduce((acc, p) => acc + Math.ceil((p.evacuee_count || 0) / 45), 0);
   const totalAmbulances = evacuationPlan.length * 2;
 
   const todayStr = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' });
   const timeStr = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) + ' IST';
-  const orderNumber = `DM/DDMA/2026/ORD-${Math.floor(1000 + Math.random() * 9000)}`;
 
   const REPORT_TYPES = [
     { id: 'sitrep', label: '1. Situation Report (SITREP)', icon: Activity, desc: 'Operational situation summary for State & National Relief Commissioners' },
@@ -433,7 +430,7 @@ export default function ReportsAuditView({
                 <CheckCircle2 size={16} color="#15803d" />
                 <div style={{ textAlign: 'left' }}>
                   <strong style={{ fontSize: '11px', color: '#15803d', display: 'block' }}>DIGITALLY RATIFIED &amp; SEALED</strong>
-                  <span style={{ fontSize: '9.5px', color: '#166534' }}>{officerName} &bull; {todayStr}</span>
+                  <span style={{ fontSize: '9.5px', color: '#166534' }}>{officerName}, {designation} &bull; {todayStr}</span>
                 </div>
               </div>
             ) : (

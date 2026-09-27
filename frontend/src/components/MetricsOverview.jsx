@@ -1,32 +1,26 @@
-import React, { useState } from 'react';
-import {
-  AlertTriangle, Home, Users, ArrowRight, CheckCircle2, ShieldAlert,
-  Navigation, FileText, ChevronRight, MapPin, Gauge, Shield, Truck
-} from 'lucide-react';
+import React from 'react';
+import { AlertTriangle, CheckCircle2, FileText } from 'lucide-react';
 import { OPERATIONAL_SECTORS } from '../services/localEngine';
 
 export default function MetricsOverview({
   habitations = [],
   shelters = [],
-  resettlementSites = [],
+  _resettlementSites = [],
   currentSector,
   liveWeather,
   onOpenRelocationPlan,
-  horizon = 'immediate',
-  userRole = 'DDMA',
-  operationalMode = 'LIVE',
-  onSelectTab
+  _horizon = 'immediate',
+  _userRole = 'DDMA',
+  _operationalMode = 'LIVE',
+  _onSelectTab
 }) {
   const currentSectorObj = OPERATIONAL_SECTORS.find(s => s.id === currentSector);
   const sectorLabel = currentSectorObj?.label || 'Operational Ground Sector';
 
   // Counts by Zone
   const redHabs = habitations.filter(h => h.zone === 'RED');
-  const orangeHabs = habitations.filter(h => h.zone === 'ORANGE');
-  const greenHabs = habitations.filter(h => h.zone === 'GREEN');
 
   const redPop = redHabs.reduce((acc, h) => acc + (h.population || 0), 0);
-  const orangePop = orangeHabs.reduce((acc, h) => acc + (h.population || 0), 0);
   const totalShelterCap = shelters.reduce((acc, s) => acc + (s.effective_capacity || 0), 0);
   const currentOccupancy = shelters.reduce((acc, s) => acc + (s.current_occupancy || 0), 0);
   const availableBuffer = Math.max(0, totalShelterCap - currentOccupancy);
@@ -44,7 +38,6 @@ export default function MetricsOverview({
   const pressureHpa = liveWeather?.pressure_hpa ?? 1008.0;
   const weatherCond = liveWeather?.condition || 'Normal Monsoonal Conditions';
   const isStorm = Boolean(liveWeather?.is_cyclone_alert);
-  const isSimulation = operationalMode === 'SIMULATION';
 
   // Min factor of safety among red habitations
   const minFS = redHabs.length > 0

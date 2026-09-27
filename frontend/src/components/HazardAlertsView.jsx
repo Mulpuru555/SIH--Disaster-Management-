@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { AlertTriangle, CloudRain, Waves, Activity, RefreshCw, CheckCircle2, ShieldAlert, Wind, Gauge } from 'lucide-react';
+import { CloudRain, Waves, CheckCircle2 } from 'lucide-react';
 import { OPERATIONAL_SECTORS } from '../services/localEngine';
 
 export default function HazardAlertsView({
   currentSector,
-  onSectorChange,
+  _onSectorChange,
   liveWeather,
-  operationalMode
+  _operationalMode
 }) {
   const [selectedBasin, setSelectedBasin] = useState('ALL');
 

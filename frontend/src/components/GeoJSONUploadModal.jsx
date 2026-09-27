@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Layers, Upload, CheckCircle2, AlertTriangle, X, FileCode } from 'lucide-react';
+import { Layers, Upload, CheckCircle2, X } from 'lucide-react';
 import { uploadHazardGeoJSON } from '../services/api';
 
 const SAMPLE_WAYANAD_POLYGON = {

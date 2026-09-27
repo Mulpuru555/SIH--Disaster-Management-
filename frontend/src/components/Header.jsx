@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Shield, FileText, Clock, Map, ListFilter, Home, Activity, ShieldCheck,
-  Radio, Sliders, AlertTriangle, Users, Navigation, Truck, Package, Bot,
-  Eye, Volume2, Globe, Search
+  Shield, FileText, Clock, Map, ListFilter, Home,
+  Radio, Sliders, AlertTriangle, Navigation, Truck, Bot, Globe
 } from 'lucide-react';
 import { OPERATIONAL_SECTORS } from '../services/localEngine';
 
@@ -14,11 +13,11 @@ export default function Header({
   onHorizonChange,
   currentSector,
   onSectorChange,
-  onOpenTelemetry,
-  onOpenAudit,
+  _onOpenTelemetry,
+  _onOpenAudit,
   operationalMode = 'LIVE',
   onOperationalModeChange,
-  liveWeather,
+  _liveWeather,
   userRole = 'DDMA',
   onRoleChange
 }) {

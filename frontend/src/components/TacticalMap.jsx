@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
-import { Mountain, Globe, ShieldCheck } from 'lucide-react';
-import { OPERATIONAL_SECTORS, NATIONAL_HOTSPOTS, getNationalMonitoringNodes } from '../services/localEngine';
+import { Globe } from 'lucide-react';
+import { OPERATIONAL_SECTORS, getNationalMonitoringNodes } from '../services/localEngine';
 
 export default function TacticalMap({
   habitations,
@@ -12,7 +12,7 @@ export default function TacticalMap({
   currentSector,
   onSectorChange,
   onSelectHabitation,
-  onOpen3DInspector,
+  _onOpen3DInspector,
   liveWeather,
   operationalMode = 'LIVE',
   simParams = {},
@@ -37,7 +37,6 @@ export default function TacticalMap({
     }
   };
 
-  const [isPerspective3D, setIsPerspective3D] = useState(false); // 3D Perspective Tilt on Map
   const [radarPath, setRadarPath] = useState(null);
   const [radarTimestamp, setRadarTimestamp] = useState(null);
 

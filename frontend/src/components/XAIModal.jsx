@@ -1,25 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { X, ShieldAlert, BarChart3, Users, Clock, FileText } from 'lucide-react';
+import { X, ShieldAlert, BarChart3, Users, Clock } from 'lucide-react';
 import { fetchXAI } from '../services/api';
 
 export default function XAIModal({ habitation, onClose }) {
   const [xaiData, setXaiData] = useState(null);
-  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    let isMounted = true;
     if (habitation?.id) {
-      let isMounted = true;
-      setLoading(true);
       fetchXAI(habitation.id).then(res => {
         if (isMounted && res) {
           setXaiData(res);
         }
-        if (isMounted) setLoading(false);
-      }).catch(() => {
-        if (isMounted) setLoading(false);
-      });
-      return () => { isMounted = false; };
+      }).catch(() => {});
     }
+    return () => { isMounted = false; };
   }, [habitation]);
 
   if (!habitation) return null;

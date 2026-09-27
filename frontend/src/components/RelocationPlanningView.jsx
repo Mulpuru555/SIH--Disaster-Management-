@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import {
-  Truck, Home, Calendar, Clock, Download, ArrowRight, ShieldCheck,
-  FileText, Edit3, CheckCircle2, AlertTriangle, Users, Navigation, X, Save
+  Truck, Clock, FileText, Edit3, CheckCircle2, X, Save
 } from 'lucide-react';
 
 export default function RelocationPlanningView({
@@ -16,7 +15,6 @@ export default function RelocationPlanningView({
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [editablePlan, setEditablePlan] = useState([...evacuationPlan]);
   const [planRatified, setPlanRatified] = useState(false);
-  const [editingIndex, setEditingIndex] = useState(null);
 
   // Sync editable plan if incoming evacuationPlan changes and not modified
   React.useEffect(() => {

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sliders, Radio, AlertTriangle, RefreshCw, Activity, Compass, Wind } from 'lucide-react';
+import { Sliders, Radio, AlertTriangle, RefreshCw, Activity, Compass } from 'lucide-react';
 import { OPERATIONAL_SECTORS } from '../services/localEngine';
 
 export default function SimulationControls({
@@ -9,7 +9,7 @@ export default function SimulationControls({
   onTriggerExtremeCloudburst,
   onTriggerBridgeWashout,
   onResetSimulation,
-  isExtreme,
+  _isExtreme,
   currentSector,
   liveWeather,
   operationalMode = 'LIVE',

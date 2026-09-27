@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Activity, Waves, CloudRain, AlertTriangle, CheckCircle2, RefreshCw, X, Shield, Info, Database } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Activity, Waves, CloudRain, RefreshCw, X, Shield, Info, Database } from 'lucide-react';
 import { fetchLiveSectorWeather } from '../services/weatherApi';
 
 export default function LiveTelemetryModal({ isOpen, onClose, currentSector = 'all_india' }) {
@@ -7,7 +7,7 @@ export default function LiveTelemetryModal({ isOpen, onClose, currentSector = 'a
   const [loading, setLoading] = useState(false);
   const [lastChecked, setLastChecked] = useState('');
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     setLoading(true);
     try {
       const weather = await fetchLiveSectorWeather(currentSector);
@@ -18,13 +18,13 @@ export default function LiveTelemetryModal({ isOpen, onClose, currentSector = 'a
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentSector]);
 
   useEffect(() => {
     if (isOpen) {
       loadData();
     }
-  }, [isOpen, currentSector]);
+  }, [isOpen, loadData]);
 
   if (!isOpen) return null;
 
